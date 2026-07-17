@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JOHN MELO — FIGURA PÚBLICA</title>
+  <meta name="description" content="Você está sendo exposto a John Melo. Figura Pública. Um território digital." />
+  <link rel="icon" type="image/png" href="/assets/face.png" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════ LANDING SCREEN ═══════════ -->
+  <div id="landing">
+    <div id="landing-glitch-layer"></div>
+    <div id="landing-content">
+      <div id="landing-face-container">
+        <img src="/assets/face.png" alt="JOHN MELO" id="landing-face" />
+        <img src="/assets/face.png" alt="" id="landing-face-ghost" class="ghost" />
+      </div>
+      <h1 id="landing-title">JOHN MELO</h1>
+      <p id="landing-subtitle">FIGURA PÚBLICA</p>
+      <div id="landing-counter">
+        <span class="counter-label">ROSTOS DISTRIBUÍDOS</span>
+        <span class="counter-number" id="counter-value">128.442</span>
+      </div>
+      <button id="enter-btn">
+        <span class="btn-text">ENTRAR</span>
+        <span class="btn-sub">[ clique para ser exposto ]</span>
+      </button>
+      <p id="landing-footer">ESTE SITE TENTA OCUPAR O MESMO ESPAÇO QUE UMA PROPAGANDA.</p>
+    </div>
+    <div id="landing-stamps">
+      <!-- JS will scatter face stamps -->
+    </div>
+  </div>
+
+  <!-- ═══════════ LOADING SCREEN ═══════════ -->
+  <div id="loading" class="hidden">
+    <div id="loading-inner">
+      <div class="loading-face-spin">
+        <img src="/assets/face.png" alt="" />
+      </div>
+      <p id="loading-text">CARREGANDO TERRITÓRIO...</p>
+      <div id="loading-bar-container">
+        <div id="loading-bar"></div>
+      </div>
+      <p id="loading-sublabel">VOCÊ ESTÁ SENDO OBSERVADO</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ 3D CANVAS ═══════════ -->
+  <canvas id="game-canvas" class="hidden"></canvas>
+
+  <!-- ═══════════ HUD ═══════════ -->
+  <div id="hud" class="hidden">
+    <div id="crosshair">+</div>
+    <div id="hud-top-left">
+      <span class="hud-label">ROSTOS DISTRIBUÍDOS</span>
+      <span class="hud-value" id="hud-counter">128.442</span>
+    </div>
+    <div id="hud-top-right">
+      <span class="hud-label blink">● REC</span>
+    </div>
+    <div id="hud-bottom">
+      <span id="hud-location">RUA — SETOR 01</span>
+    </div>
+    <div id="hud-interact" class="hidden">
+      <span>[CLIQUE] INTERAGIR</span>
+    </div>
+    <div id="hud-footer">
+      VOCÊ ESTÁ SENDO EXPOSTO A JOHN MELO
+    </div>
+    <div id="susto-text" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); font-size:2rem; font-family:Helvetica, sans-serif; background:#fff; color:#000; padding:10px 20px; z-index:9999; text-align:center;">S O M O S  T O D O S  F I G U R A S  P Ú B L I C A S</div>
+
+    <!-- Controls Legend -->
+    <div id="hud-controls-legend">
+      <div class="legend-header">COMANDOS</div>
+      <div class="legend-row"><span class="key-cap">W,A,S,D</span> Mover</div>
+      <div class="legend-row"><span class="key-cap">SHIFT</span> Correr</div>
+      <div class="legend-row"><span class="key-cap">ESPAÇO</span> Pular</div>
+      <div class="legend-row"><span class="key-cap">I</span> Inventário / Banco</div>
+      <div class="legend-row"><span class="key-cap">G</span> Pixação (Graffiti)</div>
+      <div class="legend-row"><span class="key-cap">F2</span> Estúdio Criativo</div>
+      <div class="legend-row"><span class="key-cap">ESC</span> Pausar</div>
+    </div>
+
+    <!-- Pause menu -->
+    <div id="pause-menu" class="hidden">
+      <div id="pause-inner">
+        <img src="/assets/face.png" alt="" class="pause-face" />
+        <h2>JOHN MELO</h2>
+        <p class="pause-sub">FIGURA PÚBLICA</p>
+        <div class="pause-nav">
+          <button class="pause-btn" data-action="resume">VOLTAR</button>
+          <button class="pause-btn" data-action="manifesto">MANIFESTOS</button>
+          <button class="pause-btn" data-action="archive">ARQUIVO</button>
+          <button class="pause-btn" data-action="inventory">INVENTÁRIO & BANCO DE IP</button>
+          <button class="pause-btn" data-action="downloads">DOWNLOADS</button>
+        </div>
+        <p class="pause-footer">PRESSIONE ESC PARA CONTINUAR EXPLORANDO</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PAINTING VIEWER OVERLAY ═══════════ -->
+  <div id="overlay-painting" class="overlay hidden">
+    <div class="overlay-inner painting-viewer">
+      <div class="overlay-header">
+        <span class="overlay-tag">REGISTRO #<span id="painting-id">00001</span></span>
+        <button class="overlay-close" data-close="overlay-painting">✕</button>
+      </div>
+      <div id="painting-frame">
+        <img id="painting-img" src="/assets/poster.png" alt="Obra" />
+      </div>
+      <div class="painting-info">
+        <p class="painting-title" id="painting-title">SEM TÍTULO</p>
+        <p class="painting-meta" id="painting-meta">Técnica mista sobre papel — 2024</p>
+        <p class="painting-desc" id="painting-desc" style="font-size: 0.75rem; color: #888; margin-top: 10px; line-height: 1.4; border-top: 1px solid #333; padding-top: 10px;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ INVENTORY & IP BANK OVERLAY ═══════════ -->
+  <div id="overlay-inventory" class="overlay hidden">
+    <div class="overlay-inner inventory-viewer">
+      <div class="overlay-header">
+        <span class="overlay-tag">> BANCO_DE_IDENTIDADES_IP</span>
+        <button class="overlay-close" data-close="overlay-inventory">✕</button>
+      </div>
+      <div class="inventory-body">
+        
+        <!-- Local User Identification -->
+        <div class="inventory-section">
+          <h3>SEU REGISTRO DE CONEXÃO</h3>
+          <div class="ip-ledger-row current-user">
+            <span class="ledger-label">IP DO CLIENTE:</span>
+            <span class="ledger-value" id="user-ip">CARREGANDO...</span>
+          </div>
+          <div class="ip-ledger-row current-user">
+            <span class="ledger-label">SALDO DO INVENTÁRIO:</span>
+            <span class="ledger-value"><span id="user-collected-count">0</span> ROSTOS DEPOSITADOS</span>
+          </div>
+        </div>
+
+        <!-- Visual collected items grid -->
+        <div class="inventory-section">
+          <h3>ITENS COLETADOS (INVENTÁRIO)</h3>
+          <div class="inventory-grid" id="inventory-grid">
+            <!-- Dynamically populated stamps representing collected John Melos -->
+          </div>
+        </div>
+
+        <!-- Global simulated IP Ledger (The Bank) -->
+        <div class="inventory-section">
+          <h3>LEDGER GLOBAL (BANCO DE IPS)</h3>
+          <p style="font-size:0.7rem; color:#666; margin-bottom:10px;">Endereços IP registrados e seus respectivos depósitos na obra.</p>
+          <div class="ip-ledger-list" id="ip-ledger-list">
+            <!-- Dynamically populated IP ledger -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ VIDEO OVERLAY (CINEMA) ═══════════ -->
+  <div id="overlay-cinema" class="overlay hidden">
+    <div class="overlay-inner cinema-viewer">
+      <div class="overlay-header">
+        <span class="overlay-tag">PROJEÇÃO</span>
+        <button class="overlay-close" data-close="overlay-cinema">✕</button>
+      </div>
+      <div class="cinema-screen">
+        <video id="cinema-video" controls>
+          <source src="/assets/video.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="cinema-scanlines"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CASSETTE PLAYER + SOUNDCLOUD RADIO ═══════════ -->
+  <div id="overlay-cassette" class="overlay hidden">
+    <div class="overlay-inner cassette-player">
+      <div class="overlay-header">
+        <span class="overlay-tag">TOCA-FITAS</span>
+        <button class="overlay-close" data-close="overlay-cassette">✕</button>
+      </div>
+      <div class="cassette-body">
+        <div class="cassette-tape">
+          <div class="tape-reel left" id="tape-reel-l"></div>
+          <div class="tape-window">
+            <span id="tape-track-name">PERPETUALIZATION 2</span>
+          </div>
+          <div class="tape-reel right" id="tape-reel-r"></div>
+        </div>
+        <div class="cassette-controls">
+          <button class="tape-btn" id="tape-prev">⏮</button>
+          <button class="tape-btn big" id="tape-play">▶</button>
+          <button class="tape-btn" id="tape-next">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden SoundCloud Widget (offscreen) -->
+  <iframe id="sc-widget" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/johnmelo_putoexperimental/sets/perpetualization-2&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"></iframe>
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+
+  <!-- ═══════════ MANIFESTO OVERLAY ═══════════ -->
+  <div id="overlay-manifesto" class="overlay hidden">
+    <div class="overlay-inner manifesto-viewer">
+      <div class="overlay-header">
+        <span class="overlay-tag">MANIFESTO</span>
+        <button class="overlay-close" data-close="overlay-manifesto">✕</button>
+      </div>
+      <div class="manifesto-paper">
+        <h2>FIGURA PÚBLICA</h2>
+        <p>A obra "Figura Pública" é uma reflexão sobre a relação entre arte e público, bem como a noção de privacidade e exposição.</p>
+        <p>John Melo utiliza sua própria imagem como meio de expressão, buscando saturar o espaço público com sua presença através de diversas técnicas e meios de comunicação.</p>
+        <p>A distribuição de pequenos papeis com o rosto do artista estampado, invasões em exposições, curtas-metragens, performances e pinturas são algumas das estratégias utilizadas.</p>
+        <hr />
+        <p>John Melo quer bater de frente com o poder de visibilidade que as grandes empresas têm, achando injusto que conteúdos tão vazios e propagandas tenham lugar nos grandes meios de comunicação, enquanto artistas independentes que criam conteúdos tão ricos são impedidos de terem seu trabalho exposto para o grande público.</p>
+        <hr />
+        <p class="manifesto-stamp">ESTE DOCUMENTO É PARTE DA OBRA.</p>
+        <img src="/assets/face.png" alt="" class="manifesto-face" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ "VOCÊ JÁ VIU ESTE ROSTO?" POPUP ═══════════ -->
+  <div id="overlay-question" class="overlay hidden">
+    <div class="overlay-inner question-popup">
+      <img src="/assets/face.png" alt="" class="question-face" />
+      <h2>VOCÊ JÁ VIU ESTE ROSTO ANTES?</h2>
+      <div class="question-buttons">
+        <button class="q-btn" id="q-yes">SIM</button>
+        <button class="q-btn" id="q-no">NÃO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ FULLSCREEN FACE (for NÃO answer) ═══════════ -->
+  <div id="fullscreen-face" class="hidden">
+    <img src="/assets/face.png" alt="JOHN MELO" />
+    <p>AGORA VOCÊ VIU.</p>
+  </div>
+
+  <!-- ═══════════ ARCHIVE TERMINAL ═══════════ -->
+  <div id="overlay-archive" class="overlay hidden">
+    <div class="overlay-inner archive-terminal">
+      <div class="overlay-header">
+        <span class="overlay-tag terminal-tag">ARQUIVO://JOHN_MELO</span>
+        <button class="overlay-close" data-close="overlay-archive">✕</button>
+      </div>
+      <div class="terminal-body">
+        <div class="terminal-line">> ACESSANDO ARQUIVO...</div>
+        <div class="terminal-line">> REGISTROS ENCONTRADOS: 47</div>
+        <div class="terminal-line">> CLASSIFICAÇÃO: FIGURA PÚBLICA</div>
+        <div class="terminal-separator">═══════════════════════════════</div>
+        <div class="archive-folders">
+          <div class="archive-folder" data-year="2018">
+            <span class="folder-icon">📁</span> 2018 — INVASÕES
+          </div>
+          <div class="archive-folder" data-year="2019">
+            <span class="folder-icon">📁</span> 2019 — PERFORMANCES
+          </div>
+          <div class="archive-folder" data-year="2020">
+            <span class="folder-icon">📁</span> 2020 — PINTURAS
+          </div>
+          <div class="archive-folder" data-year="2021">
+            <span class="folder-icon">📁</span> 2021 — FILMES
+          </div>
+          <div class="archive-folder" data-year="2022">
+            <span class="folder-icon">📁</span> 2022 — ZINES
+          </div>
+          <div class="archive-folder" data-year="2023">
+            <span class="folder-icon">📁</span> 2023 — OBJETOS
+          </div>
+          <div class="archive-folder" data-year="2024">
+            <span class="folder-icon">📁</span> 2024 — GAMES
+          </div>
+          <div class="archive-folder" data-year="2025">
+            <span class="folder-icon">📁</span> 2025 — MÚSICA
+          </div>
+        </div>
+        <div class="terminal-separator">═══════════════════════════════</div>
+        <div class="terminal-line blink">> _</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ ZINE READER ═══════════ -->
+  <div id="overlay-zine" class="overlay hidden">
+    <div class="overlay-inner zine-reader">
+      <div class="overlay-header">
+        <span class="overlay-tag">ZINE #001</span>
+        <button class="overlay-close" data-close="overlay-zine">✕</button>
+      </div>
+      <div class="zine-book">
+        <div class="zine-page active" id="zine-page-1">
+          <h2 style="font-family: 'Courier New', monospace; font-size: 2rem;">JOHN MELO</h2>
+          <p style="font-family: 'Times New Roman', serif;">PROFISSIONALMENTE NÃO ORTODOXO</p>
+          <img src="/assets/face.png" alt="" style="width:120px;filter:contrast(2) grayscale(1);margin:20px auto;display:block;" />
+          <p style="font-family: 'Courier New', monospace; font-size: 0.7rem; text-align: center;">DISTRIBUIÇÃO GRATUITA — TIRE UMA CÓPIA</p>
+        </div>
+        <div class="zine-page" id="zine-page-2">
+          <h3 style="font-family: Arial, sans-serif;">O QUE É FIGURA PÚBLICA?</h3>
+          <p style="font-family: 'Times New Roman', serif; font-size: 0.85rem; line-height: 1.6;">
+            A obra questiona a noção de privacidade e o papel do artista na sociedade, explorando a relação entre arte e vida cotidiana. 
+            Além disso, o artista busca experimentar novos modos de expressão e questionar as formas tradicionais de se apresentar e distribuir arte.
+          </p>
+          <div style="border: 2px solid #000; padding: 10px; margin-top: 15px; font-family: 'Courier New', monospace; font-size: 0.7rem;">
+            REGISTRO: DISTRIBUIÇÃO DE 300 ROSTOS<br/>
+            LOCAL: SHOPPING CENTER<br/>
+            DATA: 12/02/2018<br/>
+            STATUS: EXECUTADO
+          </div>
+        </div>
+        <div class="zine-page" id="zine-page-3">
+          <div style="text-align: center; padding-top: 30px;">
+            <img src="/assets/poster_red.png" alt="" style="width:80%;filter:grayscale(1) contrast(3);mix-blend-mode:multiply;" />
+          </div>
+          <p style="font-family: 'Courier New', monospace; font-size: 0.6rem; text-align: center; margin-top: 10px;">
+            VOCÊ ESTÁ SENDO EXPOSTO A JOHN MELO.
+          </p>
+        </div>
+        <div class="zine-page" id="zine-page-4">
+          <h3 style="font-family: Arial, sans-serif;">CADASTRE-SE PARA SER AFETADO</h3>
+          <div style="border: 1px dashed #000; padding: 20px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 0.7rem;">
+            NOME: ___________________<br/><br/>
+            EMAIL: ___________________<br/><br/>
+            VOCÊ CONCORDA EM SER<br/>
+            CONTINUAMENTE ALCANÇADO<br/>
+            PELA PRESENÇA DE JOHN MELO?<br/><br/>
+            [ ] SIM &nbsp;&nbsp; [ ] SIM
+          </div>
+          <p style="font-family: 'Courier New', monospace; font-size: 0.55rem; text-align: center;">
+            NÃO EXISTE OPÇÃO "NÃO".
+          </p>
+        </div>
+      </div>
+      <div class="zine-nav">
+        <button id="zine-prev" class="zine-nav-btn">← ANTERIOR</button>
+        <span id="zine-page-indicator">1 / 4</span>
+        <button id="zine-next" class="zine-nav-btn">PRÓXIMO →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CRT MONITOR (in-world computer) ═══════════ -->
+  <div id="overlay-crt" class="overlay hidden">
+    <div class="overlay-inner crt-monitor">
+      <div class="crt-bezel">
+        <div class="crt-screen">
+          <div class="crt-content">
+            <pre>
+╔════════════════════════════════════╗
+║                                    ║
+║          JOHN MELO                 ║
+║          FIGURA PÚBLICA            ║
+║                                    ║
+║   > PROPAGANDA                     ║
+║   > INVASÕES                       ║
+║   > ARQUIVO                        ║
+║   > FILMES                         ║
+║   > PINTURAS                       ║
+║   > OBJETOS                        ║
+║   > GAMES                          ║
+║   > ZINES                          ║
+║   > MÚSICA                         ║
+║   > DOWNLOADS                      ║
+║   > MANIFESTOS                     ║
+║   > PROCESSO                       ║
+║   > ERROS                          ║
+║   > RASCUNHOS                      ║
+║   > DOCUMENTOS                     ║
+║   > VOCÊ                           ║
+║                                    ║
+║   ROSTOS DISTRIBUÍDOS: 128.442     ║
+║                                    ║
+╚════════════════════════════════════╝
+            </pre>
+          </div>
+          <div class="crt-scanline-overlay"></div>
+        </div>
+      </div>
+      <div class="overlay-header" style="margin-top:10px;">
+        <button class="overlay-close" data-close="overlay-crt">DESLIGAR MONITOR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEV INTERFACE REMOVED -->
+
+  <!-- ═══════════ CREATOR STUDIO EDITOR PANEL ═══════════ -->
+  <div id="overlay-editor" class="editor-panel-sidebar hidden">
+    <div class="editor-header">
+      <span class="editor-tag">> ESTÚDIO_CRIATIVO_V2.0</span>
+      <button id="btn-close-editor" class="editor-close-btn">✕</button>
+    </div>
+    
+    <!-- Tab Controls -->
+    <div class="editor-tabs">
+      <button class="editor-tab-btn active" data-tab="tab-inspector">INSPETOR</button>
+      <button class="editor-tab-btn" data-tab="tab-biomes">BIOMA &amp; REGRAS</button>
+      <button class="editor-tab-btn" data-tab="tab-gltf">MODELOS GLTF</button>
+      <button class="editor-tab-btn" data-tab="tab-json">CONFIG (JSON)</button>
+      <button class="editor-tab-btn" data-tab="tab-script">SCRIPT (JS)</button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="editor-tab-content">
+      
+      <!-- 1. INSPECTOR TAB -->
+      <div id="tab-inspector" class="editor-tab-pane active">
+        <div id="inspector-no-selection" class="editor-empty-msg">
+          Nenhum objeto selecionado.<br/>
+          (Clique em qualquer objeto no mundo 3D para inspecioná-lo)
+        </div>
+        <div id="inspector-selected" class="editor-form hidden">
+          <h4 id="inspector-obj-name" style="color: #ff1a1a; margin-bottom: 12px; font-family: monospace;">Mesh de Prédio</h4>
+          
+          <div class="editor-form-group">
+            <label>Posição (X, Y, Z)</label>
+            <div class="editor-row-inputs">
+              <input type="number" id="inp-pos-x" step="0.5" />
+              <input type="number" id="inp-pos-y" step="0.5" />
+              <input type="number" id="inp-pos-z" step="0.5" />
+            </div>
+          </div>
+
+          <div class="editor-form-group">
+            <label>Escala (X, Y, Z)</label>
+            <div class="editor-row-inputs">
+              <input type="number" id="inp-scale-x" step="0.1" min="0.1" />
+              <input type="number" id="inp-scale-y" step="0.1" min="0.1" />
+              <input type="number" id="inp-scale-z" step="0.1" min="0.1" />
+            </div>
+          </div>
+
+          <div class="editor-form-group">
+            <label>Rotação (Y em Graus)</label>
+            <input type="number" id="inp-rot-y" step="5" />
+          </div>
+
+          <div class="editor-form-group">
+            <label>Cor do Material (RGB)</label>
+            <input type="color" id="inp-color" style="width:100%; height:30px; cursor:pointer; background:transparent; border:1px solid #333;" />
+          </div>
+
+          <div class="editor-actions-row">
+            <button class="editor-btn danger" id="btn-delete-object">DELETAR</button>
+            <button class="editor-btn" id="btn-duplicate-object">DUPLICAR</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. BIOME & ATMOSPHERE TAB -->
+      <div id="tab-biomes" class="editor-tab-pane">
+        <h3>CONTROLES DE AMBIENTE</h3>
+        
+        <div class="editor-form-group">
+          <label>Raio Médio da Ilha: <span id="lbl-island-radius">220</span></label>
+          <input type="range" id="sld-island-radius" min="100" max="400" value="220" />
+        </div>
+
+        <div class="editor-form-group">
+          <label>Altura das Colinas: <span id="lbl-hill-height">35</span></label>
+          <input type="range" id="sld-hill-height" min="10" max="80" value="35" />
+        </div>
+
+        <div class="editor-form-group">
+          <label>Densidade do Nevoeiro: <span id="lbl-fog-density">0.016</span></label>
+          <input type="range" id="sld-fog-density" min="0.002" max="0.04" step="0.001" value="0.016" />
+        </div>
+
+        <div class="editor-form-group">
+          <label>Nível da Água: <span id="lbl-water-level">-1.5</span></label>
+          <input type="range" id="sld-water-level" min="-5.0" max="2.0" step="0.1" value="-1.5" />
+        </div>
+
+        <div class="editor-form-group">
+          <label>Luz Ambiente (Luminosidade): <span id="lbl-ambient-light">2.5</span></label>
+          <input type="range" id="sld-ambient-light" min="0.5" max="5.0" step="0.1" value="2.5" />
+        </div>
+
+        <button class="editor-btn" id="btn-rebuild-outdoor" style="width:100%; margin-top: 15px;">RECONSTRUIR MAPA EXT</button>
+      </div>
+
+      <!-- 3. GLTF MODEL IMPORTER TAB -->
+      <div id="tab-gltf" class="editor-tab-pane">
+        <h3>IMPORTAR MODELO 3D (.GLB/.GLTF)</h3>
+        
+        <div class="editor-form-group">
+          <input type="file" id="gltf-file-input" accept=".glb,.gltf" style="display:none;" />
+          <button class="editor-btn" id="btn-trigger-upload" style="width:100%;">SELECIONAR ARQUIVO 3D</button>
+        </div>
+
+        <div class="editor-form-group hidden" id="gltf-rules-panel">
+          <h4 style="color:#ff1a1a; margin-bottom:10px;">Regras do Modelo Importado</h4>
+          
+          <label>Nome no Registro</label>
+          <input type="text" id="gltf-reg-name" style="width:100%; margin-bottom:10px;" />
+
+          <label>Spawn no Bioma / Sala</label>
+          <select id="gltf-spawn-room" style="width:100%; margin-bottom:10px; background:#000; color:#fff; border:1px solid #333; padding:5px;">
+            <option value="gallery">Galeria (Interior)</option>
+            <option value="backroom">Backrooms (Interior)</option>
+            <option value="void">Vazio (Interior)</option>
+            <option value="street">Ruas (Cidade)</option>
+            <option value="hills">Colinas (Exterior)</option>
+          </select>
+
+          <label>Posicionamento do Modelo</label>
+          <select id="gltf-spawn-placement" style="width:100%; margin-bottom:10px; background:#000; color:#fff; border:1px solid #333; padding:5px;">
+            <option value="floor">No Chão</option>
+            <option value="table">Sobre Mesas / Suportes</option>
+            <option value="wall">Na Parede (Pendurado)</option>
+            <option value="ceiling">No Teto (Lustres/Fios)</option>
+          </select>
+
+          <label>Chance de Spawn (%)</label>
+          <input type="range" id="gltf-spawn-chance" min="0" max="100" value="50" style="margin-bottom:10px;" />
+
+          <label>Escala Padrão</label>
+          <input type="number" id="gltf-spawn-scale" value="1.0" step="0.1" style="width:100%; margin-bottom:15px;" />
+
+          <button class="editor-btn" id="btn-save-gltf-rule" style="width:100%;">REGISTRAR NA GERAÇÃO</button>
+        </div>
+
+        <div class="editor-section" style="margin-top:20px; border-top:1px solid #222; padding-top:15px;">
+          <h4>MODELOS REGISTRADOS</h4>
+          <div id="gltf-models-list" style="font-family:monospace; font-size:0.7rem; color:#888;">
+            Nenhum modelo customizado registrado.
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. JSON CONFIG EDITOR TAB -->
+      <div id="tab-json" class="editor-tab-pane">
+        <h3>CONFIGURAÇÃO COMPLETA (JSON)</h3>
+        <p style="font-size:0.65rem; color:#666; margin-bottom:10px;">Edite as variáveis cruciais de física, rendering e câmera diretamente.</p>
+        
+        <textarea id="txt-config-json" style="width:100%; height:300px; font-family:monospace; font-size:0.75rem; background:#050505; color:#00ff41; border:1px solid #222; padding:10px; resize:vertical;"></textarea>
+        
+        <button class="editor-btn" id="btn-apply-config-json" style="width:100%; margin-top:12px;">APLICAR CONFIGURAÇÃO</button>
+      </div>
+
+      <!-- 5. JS SCRIPTING TAB -->
+      <div id="tab-script" class="editor-tab-pane">
+        <h3>LOGICA DE GERAÇÃO (SCRIPT JS)</h3>
+        <p style="font-size:0.65rem; color:#666; margin-bottom:10px;">Escreva um script JavaScript customizado que será compilado e executado na criação de cada célula/chunk.</p>
+        
+        <textarea id="txt-generator-script" style="width:100%; height:320px; font-family:monospace; font-size:0.75rem; background:#050505; color:#00ff41; border:1px solid #222; padding:10px; resize:vertical;">
+// Script customizado de geração
+// Parâmetros disponíveis: (group, cx, cz, rng, colliders)
+(group, cx, cz, rng, colliders) => {
+  // Escreva seu código Three.js aqui!
+  // Exemplo: Colocar um outdoor na praça central (0, 0)
+  /*
+  if (cx === 0 && cz === 0) {
+    const geo = new THREE.TorusGeometry(6, 1.5, 16, 100);
+    const mat = new THREE.MeshNormalMaterial();
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(20, 15, 20);
+    group.add(mesh);
+  }
+  */
+}
+        </textarea>
+        
+        <button class="editor-btn" id="btn-compile-script" style="width:100%; margin-top:12px;">COMPILAR &amp; EXECUTAR SCRIPT</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ GRAFFITI SYSTEM HUD ═══════════ -->
+  <div id="hud-graffiti" class="hud-graffiti-container hidden">
+    <div class="graffiti-hud-title">> [SISTEMA_DE_PIXAÇÃO_V1]</div>
+    <div class="graffiti-hud-slots">
+      <div class="graffiti-hud-slot active" data-brush="face" id="g-slot-face">
+        <span class="slot-num">1</span>
+        <span class="slot-name">COLAR ROSTO</span>
+        <span class="slot-desc">(Gasta 1 Rosto)</span>
+      </div>
+      <div class="graffiti-hud-slot" data-brush="red" id="g-slot-red">
+        <span class="slot-num">2</span>
+        <span class="slot-name">SPRAY VERMELHO</span>
+      </div>
+      <div class="graffiti-hud-slot" data-brush="black" id="g-slot-black">
+        <span class="slot-num">3</span>
+        <span class="slot-name">SPRAY PRETO</span>
+      </div>
+      <div class="graffiti-hud-slot" data-brush="white" id="g-slot-white">
+        <span class="slot-num">4</span>
+        <span class="slot-name">SPRAY BRANCO</span>
+      </div>
+    </div>
+    <div class="graffiti-hud-footer">
+      <span>TAMANHO: <span id="graffiti-brush-size">1.0m</span> (Use Scroll)</span>
+      <button id="btn-clear-graffiti" style="background:transparent; border:1px solid #ff1a1a; color:#ff1a1a; padding:2px 6px; font-family:monospace; font-size:0.5rem; cursor:pointer;">LIMPAR TUDO</button>
+      <span style="margin-left: 20px; color: #ff1a1a;">SAIR: APERTE [G]</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ MOBILE CONTROLS OVERLAY ═══════════ -->
+  <div id="mobile-controls" class="hidden">
+    <div id="joystick-zone">
+      <div id="joystick-ring">
+        <div id="joystick-handle"></div>
+      </div>
+    </div>
+    <div id="mobile-actions">
+      <button class="m-btn" id="m-btn-jump">PULAR</button>
+      <button class="m-btn" id="m-btn-graffiti">GRAFFITI</button>
+      <button class="m-btn" id="m-btn-inventory">MOCHILA</button>
+    </div>
+  </div>
+
+  <script type="module" src="/main.js"></script>
+</body>
+</html>
