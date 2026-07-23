@@ -12,7 +12,57 @@
   <link rel="icon" type="image/png" href="./assets/face.png" />
   <link rel="apple-touch-icon" href="./assets/face.png">
   <link rel="manifest" href="./assets/manifest-BTY-Gx50.json" />
-  <script type="module" crossorigin src="./assets/index-I36jRXpc.js"></script>
+  <script>
+    window.onerror = function(msg, source, line, col, error) {
+      var errDiv = document.getElementById('debug-error');
+      if (!errDiv) {
+        errDiv = document.createElement('div');
+        errDiv.id = 'debug-error';
+        errDiv.style.position = 'fixed';
+        errDiv.style.top = '0';
+        errDiv.style.left = '0';
+        errDiv.style.width = '100vw';
+        errDiv.style.height = '100vh';
+        errDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+        errDiv.style.color = 'white';
+        errDiv.style.zIndex = '999999';
+        errDiv.style.pointerEvents = 'none';
+        errDiv.style.fontFamily = 'monospace';
+        errDiv.style.padding = '20px';
+        errDiv.style.whiteSpace = 'pre-wrap';
+        errDiv.style.overflow = 'auto';
+        document.body.appendChild(errDiv);
+      }
+      var txt = 'Error: ' + msg + '\nSource: ' + source + ':' + line + ':' + col + '\n';
+      if (error && error.stack) txt += 'Stack: ' + error.stack + '\n\n';
+      errDiv.innerText += txt;
+    };
+    var originalError = console.error;
+    console.error = function() {
+      var errDiv = document.getElementById('debug-error');
+      if (!errDiv) {
+        errDiv = document.createElement('div');
+        errDiv.id = 'debug-error';
+        errDiv.style.position = 'fixed';
+        errDiv.style.top = '0';
+        errDiv.style.left = '0';
+        errDiv.style.width = '100vw';
+        errDiv.style.height = '100vh';
+        errDiv.style.backgroundColor = 'rgba(255, 0, 0, 0.9)';
+        errDiv.style.color = 'white';
+        errDiv.style.zIndex = '999999';
+        errDiv.style.pointerEvents = 'none';
+        errDiv.style.fontFamily = 'monospace';
+        errDiv.style.padding = '20px';
+        errDiv.style.whiteSpace = 'pre-wrap';
+        errDiv.style.overflow = 'auto';
+        document.body.appendChild(errDiv);
+      }
+      errDiv.innerText += 'CONSOLE.ERROR: ' + Array.from(arguments).join(' ') + '\n\n';
+      originalError.apply(console, arguments);
+    };
+  </script>
+  <script type="module" crossorigin src="./assets/index-CzoVryNT.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-Ci-qquC7.css">
 </head>
 <body>
