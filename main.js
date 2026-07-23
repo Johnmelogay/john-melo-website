@@ -2964,6 +2964,10 @@ function interact(obj) {
 
   switch (d.type) {
     case 'paper':
+      window.stickerCount += 1;
+      const stickerEl = document.getElementById('hud-sticker-count');
+      if (stickerEl) stickerEl.textContent = window.stickerCount;
+
       state.counterValue += 1;
       document.getElementById('hud-counter').textContent = Number(state.counterValue).toLocaleString('pt-BR');
       document.getElementById('counter-value').textContent = Number(state.counterValue).toLocaleString('pt-BR');
