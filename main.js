@@ -58,7 +58,7 @@ const CHUNK_CHECK_INTERVAL = 0.5; // seconds between chunk checks
 const PLAYER_HEIGHT = 4.5;
 const PLAYER_RADIUS = 1.0;
 const INTERACT_DISTANCE = 6;
-const WALL_HEIGHT = 7;
+const WALL_HEIGHT = 12;
 const CELL_SIZE = 10;          // each chunk is CHUNK_SIZE/CELL_SIZE = 4×4 cells
 const CELLS_PER_CHUNK = CHUNK_SIZE / CELL_SIZE; // 4
 
@@ -187,6 +187,10 @@ function getBiome(cx, cz) {
 /* ═══════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════ */
+window.stickerCount = 10;
+let lastStickerSpawn = 0;
+const stickerPickups = [];
+
 const state = {
   started: false,
   paused: false,
@@ -378,7 +382,7 @@ function initMaterials() {
   mat.crt           = new THREE.MeshStandardMaterial({ color: 0x3a3a35, roughness: 0.7 });
   mat.cinema        = new THREE.MeshStandardMaterial({ color: 0x0a0505, roughness: 0.95 });
   mat.cinemaScreen  = new THREE.MeshStandardMaterial({ color: 0x222222, emissive: 0x333333, emissiveIntensity: 0.3, roughness: 0.5 });
-  mat.asphalt       = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95 });
+  mat.asphalt       = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.95 });
   mat.roadLine      = new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x222222, emissiveIntensity: 0.2 });
   mat.ocean          = new THREE.MeshStandardMaterial({ color: 0x0a2a3a, roughness: 0.3, metalness: 0.6 });
   mat.windowGlow     = new THREE.MeshBasicMaterial({ color: 0xffddaa });
@@ -1085,6 +1089,19 @@ function generateChunk(cx, cz) {
       group.add(p);
       chunkInteractables.push(p);
       p.userData = { type: 'paper' };
+  }
+
+  // Illuminated zone randomizer
+  if (rng() > 0.7) {
+    chunkLights.push({
+      type: 'point',
+      color: 0xffffff,
+      intensity: 2.0,
+      distance: CHUNK_SIZE * 1.5,
+      position: new THREE.Vector3(ox + CHUNK_SIZE/2, WALL_HEIGHT - 2, oz + CHUNK_SIZE/2),
+      flicker: false,
+      seed: seed
+    });
   }
 
   applyCreatorCustomizations(group, cx, cz, rng, chunkColliders, chunkInteractables, chunkLights);
@@ -1835,7 +1852,7 @@ function pickCeilingMat(room) {
   switch (room) {
     case 'gallery': return mat.white;
     case 'backroom': return mat.backroomsWall;
-    case 'cinema': case 'void': case 'secret': return mat.concreteDark;
+    case 'cinema': case 'void': case 'secret': return mat.asphalt; // Asphalt is now grey (0x333333)
     default: return mat.concrete;
   }
 }
@@ -2570,7 +2587,7 @@ function initThree() {
     powerPreference: 'high-performance',
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio('ontouchstart' in window ? 1 : 0.5);
+  renderer.setPixelRatio('ontouchstart' in window ? 1 : Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = false; // disable for performance with many lights
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -2639,7 +2656,7 @@ function initThree() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    composer.setSize(window.innerWidth, window.innerHeight);
+    if (composer) composer.setSize(window.innerWidth, window.innerHeight);
   });
 }
 
@@ -2672,6 +2689,11 @@ function initRain() {
    POST-PROCESSING (CRT + Grain + Vignette)
    ═══════════════════════════════════════════ */
 function setupPostProcessing() {
+  if ('ontouchstart' in window || isTouchDevice) {
+    composer = null; // Disable post-processing on mobile for performance and to fix pitch black screen
+    return;
+  }
+
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
@@ -2729,7 +2751,9 @@ function setupPostProcessing() {
     `,
   };
 
-  composer.addPass(new ShaderPass(crtShader));
+  if (composer) {
+    composer.addPass(new ShaderPass(crtShader));
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -3141,7 +3165,10 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 
   if (!state.started || state.paused || state.overlayOpen) {
-    if (state.started) composer.render();
+    if (state.started) {
+      if (composer) composer.render();
+      else renderer.render(scene, camera);
+    }
     return;
   }
 
@@ -3319,6 +3346,41 @@ function gameLoop() {
     state.lastChunkCheck = 0;
     updateChunks();
   }
+  
+  // --- Sticker Pickups Logic ---
+  const now = Date.now();
+  if (now - lastStickerSpawn > 10000 && stickerPickups.length < 15) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 10 + Math.random() * 30; // Spawn near player
+    const px = camera.position.x + Math.cos(angle) * dist;
+    const pz = camera.position.z + Math.sin(angle) * dist;
+    const py = config.worldMode === 'outdoor' ? getTerrainHeight(px, pz) : 0;
+    
+    if (mat.facePaper) {
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.4), mat.facePaper);
+      mesh.material.side = THREE.DoubleSide; 
+      mesh.position.set(px, py + 1.5, pz);
+      mesh.userData = { baseY: py + 1.5 };
+      scene.add(mesh);
+      stickerPickups.push(mesh);
+    }
+    lastStickerSpawn = now;
+  }
+  
+  for (let i = stickerPickups.length - 1; i >= 0; i--) {
+    const pickup = stickerPickups[i];
+    pickup.rotation.y += 0.02;
+    pickup.position.y = pickup.userData.baseY + Math.sin(now * 0.005) * 0.2;
+    
+    if (camera.position.distanceTo(pickup.position) < 2.5) {
+      window.stickerCount++;
+      const stickerEl = document.getElementById('hud-sticker-count');
+      if (stickerEl) stickerEl.innerText = window.stickerCount;
+      scene.remove(pickup);
+      stickerPickups.splice(i, 1);
+    }
+  }
+  // -----------------------------
 
   // ── CREATOR STUDIO FLY MOVEMENT ──
   if (state.editorActive) {
@@ -3511,7 +3573,8 @@ function gameLoop() {
     }
   }
 
-  composer.render();
+  if (composer) composer.render();
+  else renderer.render(scene, camera);
 }
 
 /* ═══════════════════════════════════════════
@@ -4799,12 +4862,15 @@ function placeGraffitiDecal() {
   const brush = state.graffitiBrush;
   
   if (brush === 'face') {
-    if (state.counterValue <= 0) {
-      alert('SEM ROSTOS DISPONÍVEIS! COLETE MAIS PAPÉIS DO CHÃO.');
+    if (window.stickerCount <= 0) {
+      alert('SEM ROSTOS NO ESTOQUE! COLETE MAIS PELO MAPA.');
       isSpraying = false;
       return;
     }
-    state.counterValue -= 1;
+    window.stickerCount -= 1;
+    document.getElementById('hud-sticker-count').textContent = window.stickerCount;
+    
+    state.counterValue += 1;
     document.getElementById('hud-counter').textContent = Number(state.counterValue).toLocaleString('pt-BR');
     document.getElementById('counter-value').textContent = Number(state.counterValue).toLocaleString('pt-BR');
     saveIPBankScore();
