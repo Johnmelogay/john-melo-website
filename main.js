@@ -399,10 +399,10 @@ const textures = {};
 function loadTextures(onProgress) {
   return new Promise(resolve => {
     const list = [
-      { name: 'face',      url: '/assets/face.png' },
-      { name: 'poster',    url: '/assets/poster.png' },
-      { name: 'city',      url: '/assets/city.png' },
-      { name: 'posterRed', url: '/assets/poster_red.png' },
+      { name: 'face',      url: './assets/face.png' },
+      { name: 'poster',    url: './assets/poster.png' },
+      { name: 'city',      url: './assets/city.png' },
+      { name: 'posterRed', url: './assets/poster_red.png' },
     ];
     let loaded = 0;
     list.forEach(({ name, url }) => {
@@ -2978,9 +2978,9 @@ function interact(obj) {
       if (obj.material && obj.material.userData && obj.material.userData.canvasDataUrl) {
         pimg.src = obj.material.userData.canvasDataUrl;
       } else if (d.texName) {
-        pimg.src = `/assets/${getTexSrc(d.texName)}`;
+        pimg.src = `./assets/${getTexSrc(d.texName)}`;
       } else {
-        pimg.src = '/assets/face.png';
+        pimg.src = './assets/face.png';
       }
       openOverlay('overlay-painting');
       break;
@@ -3520,7 +3520,7 @@ function gameLoop() {
 function setupLanding() {
   for (let i = 0; i < 25; i++) {
     const s = document.createElement('img');
-    s.src = '/assets/face.png';
+    s.src = './assets/face.png';
     s.className = 'landing-stamp';
     s.style.width = (30 + Math.random() * 80) + 'px';
     s.style.left = Math.random() * 100 + '%';
@@ -3852,7 +3852,7 @@ function updateInventoryUI() {
       const slot = document.createElement('div');
       slot.className = 'inventory-slot';
       const img = document.createElement('img');
-      img.src = '/assets/face.png';
+      img.src = './assets/face.png';
       slot.appendChild(img);
       grid.appendChild(slot);
     }
@@ -4273,7 +4273,7 @@ function loadBlenderOutsideWorld() {
   loadingIndicator.textContent = '> [SISTEMA] BUSCANDO ARQUIVO DA CIDADE (/assets/outside_world.glb)...';
   document.body.appendChild(loadingIndicator);
   
-  loader.load('/assets/outside_world.glb', (gltf) => {
+  loader.load('./assets/outside_world.glb', (gltf) => {
     loadingIndicator.textContent = '> [SISTEMA] CIDADE CARREGADA COM SUCESSO.';
     setTimeout(() => loadingIndicator.remove(), 3000);
     parseBlenderOutsideWorld(gltf);
@@ -4352,7 +4352,7 @@ function parseBlenderOutsideWorld(gltf) {
       if (name.startsWith('poster_') || name.startsWith('billboard_')) {
         const texName = ['face', 'poster', 'city', 'posterRed'][Math.floor(Math.random() * 4)];
         const randMat = new THREE.MeshBasicMaterial({
-          map: new THREE.TextureLoader().load(`/assets/${getTexSrc(texName)}`),
+          map: new THREE.TextureLoader().load(`./assets/${getTexSrc(texName)}`),
           side: THREE.DoubleSide
         });
         child.material = randMat;
@@ -4396,7 +4396,7 @@ function parseBlenderOutsideWorld(gltf) {
         
         const texName = ['face', 'poster', 'city', 'posterRed'][Math.floor(Math.random() * 4)];
         const posterMat = new THREE.MeshBasicMaterial({
-          map: new THREE.TextureLoader().load(`/assets/${getTexSrc(texName)}`),
+          map: new THREE.TextureLoader().load(`./assets/${getTexSrc(texName)}`),
           side: THREE.DoubleSide
         });
         
@@ -4557,7 +4557,7 @@ function initGraffiti() {
   
   // Use existing loaded face texture
   brushMaterials['face'] = new THREE.MeshBasicMaterial({
-    map: textures['face'] || new THREE.TextureLoader().load('/assets/face.png'),
+    map: textures['face'] || new THREE.TextureLoader().load('./assets/face.png'),
     transparent: true,
     depthWrite: false,
     side: THREE.DoubleSide,
