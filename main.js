@@ -2590,15 +2590,15 @@ function initThree() {
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600);
   camera.position.set(CHUNK_SIZE / 2, PLAYER_HEIGHT, CHUNK_SIZE / 2);
+  camera.rotation.order = 'YXZ'; // Prevent Z-axis roll on touch camera
 
   renderer = new THREE.WebGLRenderer({
     canvas: dom.canvas,
     antialias: false,
-    powerPreference: isTouchDevice ? 'low-power' : 'high-performance',
-    precision: isTouchDevice ? 'mediump' : 'highp',
+    powerPreference: 'high-performance',
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(isTouchDevice ? 0.5 : Math.min(window.devicePixelRatio, 1.5));
+  renderer.setPixelRatio('ontouchstart' in window ? 1 : Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = false; // disable for performance with many lights
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -2700,11 +2700,6 @@ function initRain() {
    POST-PROCESSING (CRT + Grain + Vignette)
    ═══════════════════════════════════════════ */
 function setupPostProcessing() {
-  if ('ontouchstart' in window || isTouchDevice) {
-    composer = null; // Disable post-processing on mobile for performance and to fix pitch black screen
-    return;
-  }
-
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
@@ -2872,7 +2867,8 @@ function setupControls() {
       placeGraffitiDecal();
       return;
     }
-    if (controls.isLocked && state.interactTarget && e.button === 0) {
+    const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+    if ((controls.isLocked || isMobile) && state.interactTarget && e.button === 0) {
       interact(state.interactTarget);
     }
   });
@@ -4355,12 +4351,6 @@ document.getElementById('btn-close-editor')?.addEventListener('click', toggleEdi
    BLENDER WORLD LOADER & PARSER
    ═══════════════════════════════════════════ */
 function loadBlenderOutsideWorld() {
-  if (isTouchDevice || ('ontouchstart' in window)) {
-    console.warn('[MOBILE] Skipping outside_world.glb load to avoid WebGL memory crash. Using procedural fallback.');
-    state.blenderSceneActive = false;
-    return;
-  }
-  
   const loader = new GLTFLoader();
   
   const loadingIndicator = document.createElement('div');
@@ -4913,7 +4903,11 @@ function placeGraffitiDecal() {
   } else {
     // Sprays
     if (currentSaturation < 40) {
-      alert('SATURAÇÃO MUITO BAIXA. CONTINUE COLANDO ROSTOS PARA DESBLOQUEAR A TINTA (REQUER 40%).');
+      const gbtn = document.getElementById('btn-graffiti');
+      if (gbtn) {
+        gbtn.style.color = 'red';
+        setTimeout(() => gbtn.style.color = 'white', 1000);
+      }
       isSpraying = false;
       return;
     }
