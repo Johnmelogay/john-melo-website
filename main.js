@@ -3372,7 +3372,12 @@ function gameLoop() {
     pickup.rotation.y += 0.02;
     pickup.position.y = pickup.userData.baseY + Math.sin(now * 0.005) * 0.2;
     
-    if (camera.position.distanceTo(pickup.position) < 2.5) {
+    // Calculate horizontal distance (ignore Y axis difference)
+    const dx = camera.position.x - pickup.position.x;
+    const dz = camera.position.z - pickup.position.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+    
+    if (dist < 3.0) {
       window.stickerCount++;
       const stickerEl = document.getElementById('hud-sticker-count');
       if (stickerEl) stickerEl.innerText = window.stickerCount;
@@ -4863,7 +4868,11 @@ function placeGraffitiDecal() {
   
   if (brush === 'face') {
     if (window.stickerCount <= 0) {
-      alert('SEM ROSTOS NO ESTOQUE! COLETE MAIS PELO MAPA.');
+      const stickerEl = document.getElementById('hud-sticker-count');
+      if (stickerEl) {
+        stickerEl.style.color = 'red';
+        setTimeout(() => stickerEl.style.color = 'white', 1000);
+      }
       isSpraying = false;
       return;
     }
