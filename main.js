@@ -2584,10 +2584,11 @@ function initThree() {
   renderer = new THREE.WebGLRenderer({
     canvas: dom.canvas,
     antialias: false,
-    powerPreference: 'high-performance',
+    powerPreference: isTouchDevice ? 'low-power' : 'high-performance',
+    precision: isTouchDevice ? 'mediump' : 'highp',
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio('ontouchstart' in window ? 1 : Math.min(window.devicePixelRatio, 1.5));
+  renderer.setPixelRatio(isTouchDevice ? 0.5 : Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = false; // disable for performance with many lights
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
