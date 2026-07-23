@@ -3382,7 +3382,7 @@ function gameLoop() {
     const dist = Math.sqrt(dx * dx + dz * dz);
     
     if (dist < 3.0) {
-      window.stickerCount++;
+      window.stickerCount += 5; // User requested 5 per floating face
       const stickerEl = document.getElementById('hud-sticker-count');
       if (stickerEl) stickerEl.innerText = window.stickerCount;
       scene.remove(pickup);
@@ -3855,7 +3855,9 @@ async function startGame() {
   dom.hud.classList.remove('hidden');
 
   state.started = true;
-  controls.lock();
+  if (!isTouchDevice) {
+    controls.lock(); // Only lock pointer on desktop, avoids crash on iOS Safari
+  }
   startAmbienceAudio();
   gameLoop();
 }
