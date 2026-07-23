@@ -4341,6 +4341,12 @@ document.getElementById('btn-close-editor')?.addEventListener('click', toggleEdi
    BLENDER WORLD LOADER & PARSER
    ═══════════════════════════════════════════ */
 function loadBlenderOutsideWorld() {
+  if (isTouchDevice || ('ontouchstart' in window)) {
+    console.warn('[MOBILE] Skipping outside_world.glb load to avoid WebGL memory crash. Using procedural fallback.');
+    state.blenderSceneActive = false;
+    return;
+  }
+  
   const loader = new GLTFLoader();
   
   const loadingIndicator = document.createElement('div');
