@@ -2771,6 +2771,7 @@ function setupPostProcessing() {
    GLITCH
    ═══════════════════════════════════════════ */
 function triggerGlitch(intensity = 0.5) {
+  if (!composer || !composer.passes || composer.passes.length < 2) return;
   const pass = composer.passes[1];
   if (pass?.uniforms) {
     pass.uniforms.glitchIntensity.value = intensity;
@@ -3191,8 +3192,10 @@ function gameLoop() {
   const time = clock.getElapsedTime();
 
   // Update CRT shader
-  const pass = composer.passes[1];
-  if (pass?.uniforms) pass.uniforms.time.value = time;
+  if (composer && composer.passes && composer.passes.length > 1) {
+    const pass = composer.passes[1];
+    if (pass?.uniforms) pass.uniforms.time.value = time;
+  }
 
   // Update Blender animations
   if (blenderMixer) blenderMixer.update(delta);
