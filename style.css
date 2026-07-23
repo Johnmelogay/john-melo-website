@@ -87,12 +87,12 @@ html, body {
 
 #landing-face-container {
   position: relative;
-  width: 200px;
-  height: 220px;
+  width: 140px;
+  height: 160px;
 }
 
 #landing-face {
-  width: 200px;
+  width: 140px;
   filter: contrast(2.5) grayscale(1) brightness(1.2);
   image-rendering: auto;
   animation: facePulse 4s ease-in-out infinite;
@@ -102,7 +102,7 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 200px;
+  width: 140px;
   filter: contrast(2.5) grayscale(1) brightness(1.2) invert(1);
   opacity: 0;
   animation: ghostFlicker 6s ease-in-out infinite;
@@ -124,9 +124,9 @@ html, body {
 
 #landing-title {
   font-family: var(--font-sans);
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: 900;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   color: var(--white);
   text-transform: uppercase;
   line-height: 1;
@@ -1152,21 +1152,21 @@ html, body {
    ═══════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
   #landing-title {
-    font-size: 2.2rem;
-    letter-spacing: 0.15em;
+    font-size: 1.8rem;
+    letter-spacing: 0.1em;
   }
 
   #landing-face {
-    width: 140px;
+    width: 100px;
   }
 
   #landing-face-ghost {
-    width: 140px;
+    width: 100px;
   }
 
   #landing-face-container {
-    width: 140px;
-    height: 160px;
+    width: 100px;
+    height: 120px;
   }
 
   .counter-number {
