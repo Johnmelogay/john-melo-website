@@ -63,7 +63,7 @@ export function initMultiplayer(config, name = "AGENTE") {
   }
 }
 
-export function updateLocalPlayer(x, y, z, rotY) {
+export function updateLocalPlayer(x, y, z, rotY, score = 0) {
   if (!isInitialized) return;
   const playerRef = ref(db, `players/${playerId}`);
   set(playerRef, {
@@ -72,7 +72,8 @@ export function updateLocalPlayer(x, y, z, rotY) {
     z: z,
     rotY: rotY,
     lastUpdate: Date.now(),
-    name: playerName
+    name: playerName,
+    score: score
   });
 }
 

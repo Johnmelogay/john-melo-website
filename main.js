@@ -3356,7 +3356,7 @@ function gameLoop() {
 
   const nowTime = Date.now();
   if (nowTime - lastFirebaseUpdate > 100) {
-    updateLocalPlayer(camera.position.x, camera.position.y - PLAYER_HEIGHT, camera.position.z, camera.rotation.y);
+    updateLocalPlayer(camera.position.x, camera.position.y - PLAYER_HEIGHT, camera.position.z, camera.rotation.y, state.counterValue);
     lastFirebaseUpdate = nowTime;
   }
   if (canMove) {
