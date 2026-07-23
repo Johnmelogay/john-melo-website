@@ -1,0 +1,17 @@
+{
+  "name": "John Melo",
+  "short_name": "John Melo",
+  "description": "Você está sendo exposto a John Melo. Figura Pública.",
+  "start_url": "./",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "./assets/face.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
