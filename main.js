@@ -3742,7 +3742,9 @@ async function startGame() {
   dom.landing.classList.add('hidden');
   dom.loading.classList.remove('hidden');
 
-  initMultiplayer();
+  const nameInput = document.getElementById('player-name-input');
+  const pName = nameInput ? nameInput.value.trim() : "";
+  initMultiplayer(null, pName !== "" ? pName : "AGENTE");
   listenToPlayers(onPlayersSync);
   listenToGraffiti(onGraffitiSync);
   listenToSaturation(onSaturationSync);
@@ -4653,12 +4655,13 @@ function onGraffitiSync(grafData) {
 
   const pos = new THREE.Vector3(grafData.x, grafData.y, grafData.z);
   const normal = new THREE.Vector3(grafData.nx, grafData.ny, grafData.nz);
-  spawnDecalMesh(pos, normal, grafData.brush, grafData.size, placedDecals.length);
+  spawnDecalMesh(pos, normal, grafData.brush, grafData.size, placedDecals.length, grafData.targetId);
   placedDecals.push({
     pos: [pos.x, pos.y, pos.z],
     normal: [normal.x, normal.y, normal.z],
     type: grafData.brush,
-    size: grafData.size
+    size: grafData.size,
+    targetId: grafData.targetId
   });
 }
 
@@ -4730,6 +4733,7 @@ function updateGraffitiPreview() {
   if (state.blenderSceneActive && blenderWorldGroup) {
     targets.push(blenderWorldGroup);
   }
+  targets.push(...Object.values(remotePlayers));
   
   const intersects = raycaster.intersectObjects(targets, true);
   
@@ -4770,6 +4774,7 @@ function placeGraffitiDecal() {
   if (state.blenderSceneActive && blenderWorldGroup) {
     targets.push(blenderWorldGroup);
   }
+  targets.push(...Object.values(remotePlayers));
   
   const intersects = raycaster.intersectObjects(targets, true);
   if (intersects.length === 0 || intersects[0].distance >= 8.0 || !intersects[0].face) return;
@@ -4801,20 +4806,26 @@ function placeGraffitiDecal() {
     incrementGlobalSaturation(0.05); // Tinta dá 0.05%
   }
   
-  spawnDecalMesh(pos, normal, brush, state.graffitiSize, placedDecals.length);
+  let targetId = null;
+  if (hit.object && hit.object.userData && hit.object.userData.isPlayer) {
+    targetId = hit.object.userData.remotePlayerId;
+  }
+  
+  spawnDecalMesh(pos, normal, brush, state.graffitiSize, placedDecals.length, targetId);
   
   placedDecals.push({
     pos: [pos.x, pos.y, pos.z],
     normal: [normal.x, normal.y, normal.z],
     type: brush,
-    size: state.graffitiSize
+    size: state.graffitiSize,
+    targetId: targetId
   });
   
-  broadcastGraffiti(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, brush, state.graffitiSize);
+  broadcastGraffiti(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, brush, state.graffitiSize, targetId);
   saveDecalsToLocalStorage();
 }
 
-function spawnDecalMesh(pos, normal, brush, size, indexOffset = 0) {
+function spawnDecalMesh(pos, normal, brush, size, indexOffset = 0, targetId = null) {
   const geometry = new THREE.PlaneGeometry(size, size);
   const mat = brushMaterials[brush];
   
@@ -4837,7 +4848,11 @@ function spawnDecalMesh(pos, normal, brush, size, indexOffset = 0) {
   );
   mesh.rotation.setFromRotationMatrix(matrix);
   
-  scene.add(mesh);
+  if (targetId && remotePlayers[targetId]) {
+    remotePlayers[targetId].attach(mesh);
+  } else {
+    scene.add(mesh);
+  }
 }
 
 function saveDecalsToLocalStorage() {

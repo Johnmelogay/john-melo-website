@@ -22,15 +22,18 @@ let db;
 let playerId;
 let isInitialized = false;
 
+let playerName = "AGENTE";
+
 // Gera um ID único aleatório para esta sessão
 function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export function initMultiplayer(config) {
+export function initMultiplayer(config, name = "AGENTE") {
   if (config) {
     firebaseConfig = config;
   }
+  playerName = name;
   
   if (firebaseConfig.apiKey.includes("COLE_AQUI")) {
     console.warn("Multiplayer desativado: Configuração do Firebase não encontrada. Edite firebase-multiplayer.js ou chame initMultiplayer com as credenciais reais.");
@@ -50,7 +53,7 @@ export function initMultiplayer(config) {
     
     // Adiciona o jogador inicialmente
     set(playerRef, {
-      x: 0, y: 0, z: 0, rotY: 0, lastUpdate: Date.now()
+      x: 0, y: 0, z: 0, rotY: 0, lastUpdate: Date.now(), name: playerName
     });
 
     return true;
@@ -68,7 +71,8 @@ export function updateLocalPlayer(x, y, z, rotY) {
     y: y,
     z: z,
     rotY: rotY,
-    lastUpdate: Date.now()
+    lastUpdate: Date.now(),
+    name: playerName
   });
 }
 
@@ -81,7 +85,7 @@ export function listenToPlayers(callback) {
   });
 }
 
-export function broadcastGraffiti(x, y, z, nx, ny, nz, brush, size) {
+export function broadcastGraffiti(x, y, z, nx, ny, nz, brush, size, targetId = null) {
   if (!isInitialized) return;
   const grafId = 'graf_' + generateId() + '_' + Date.now();
   const grafRef = ref(db, `graffiti/${grafId}`);
@@ -89,6 +93,7 @@ export function broadcastGraffiti(x, y, z, nx, ny, nz, brush, size) {
   set(grafRef, {
     x, y, z, nx, ny, nz, brush, size,
     owner: playerId,
+    targetId: targetId,
     timestamp: Date.now()
   });
 }
