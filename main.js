@@ -4717,7 +4717,8 @@ function onPlayersSync(playersData, myId) {
     const p = playersData[id];
     
     if (Date.now() - p.lastUpdate <= 10000) {
-      html += `<li>${p.name ? p.name.toUpperCase() : 'AGENTE'}</li>`;
+      const dispName = p.name ? p.name.toUpperCase() : `AGENTE-${id.substring(0, 4).toUpperCase()}`;
+      html += `<li>${dispName}</li>`;
       onlineCount++;
     }
     
@@ -4739,6 +4740,13 @@ function onPlayersSync(playersData, myId) {
 
     remotePlayers[id].position.lerp(new THREE.Vector3(p.x, p.y + 1.5, p.z), 0.2); // y + 1.5 to center the 3m box
     remotePlayers[id].rotation.y = p.rotY;
+  }
+
+  if (listEl && listEl.innerHTML !== html) {
+    listEl.innerHTML = html;
+  }
+  if (countEl && countEl.textContent != onlineCount) {
+    countEl.textContent = onlineCount;
   }
 }
 
