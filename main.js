@@ -21,6 +21,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { initMultiplayer, updateLocalPlayer, listenToPlayers, broadcastGraffiti, listenToGraffiti, getPlayerId, listenToSaturation, incrementGlobalSaturation } from './firebase-multiplayer.js';
 
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
@@ -3352,6 +3353,12 @@ function gameLoop() {
 
   // ── MOVEMENT ──
   const canMove = controls.isLocked || isTouchDevice;
+
+  const nowTime = Date.now();
+  if (nowTime - lastFirebaseUpdate > 100) {
+    updateLocalPlayer(camera.position.x, camera.position.y - PLAYER_HEIGHT, camera.position.z, camera.rotation.y);
+    lastFirebaseUpdate = nowTime;
+  }
   if (canMove) {
     state.velocity.x -= state.velocity.x * 10 * delta;
     state.velocity.z -= state.velocity.z * 10 * delta;
@@ -3734,6 +3741,11 @@ async function startGame() {
   }
   dom.landing.classList.add('hidden');
   dom.loading.classList.remove('hidden');
+
+  initMultiplayer();
+  listenToPlayers(onPlayersSync);
+  listenToGraffiti(onGraffitiSync);
+  listenToSaturation(onSaturationSync);
 
   initThree();
   initGeometries();
@@ -4600,6 +4612,76 @@ function initGraffiti() {
   });
 }
 
+// ── MULTIPLAYER VARIABLES & SYNC FUNCTIONS ──
+let lastFirebaseUpdate = 0;
+const remotePlayers = {};
+
+function onPlayersSync(playersData, myId) {
+  if (!playersData) return;
+  for (const id in playersData) {
+    if (id === myId) continue;
+    const p = playersData[id];
+    
+    if (Date.now() - p.lastUpdate > 10000) {
+      if (remotePlayers[id]) {
+        scene.remove(remotePlayers[id]);
+        delete remotePlayers[id];
+      }
+      continue;
+    }
+
+    if (!remotePlayers[id]) {
+      const geo = new THREE.BoxGeometry(1.5, 3, 1.5);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, transparent: true, opacity: 0.3 }); 
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+      remotePlayers[id] = mesh;
+    }
+
+    remotePlayers[id].position.lerp(new THREE.Vector3(p.x, p.y + 1.5, p.z), 0.2); // y + 1.5 to center the 3m box
+    remotePlayers[id].rotation.y = p.rotY;
+  }
+}
+
+const networkGraffitiIds = new Set();
+function onGraffitiSync(grafData) {
+  if (grafData.owner === getPlayerId()) return;
+  
+  const key = `${grafData.x},${grafData.y},${grafData.z}_${grafData.timestamp}`;
+  if (networkGraffitiIds.has(key)) return;
+  networkGraffitiIds.add(key);
+
+  const pos = new THREE.Vector3(grafData.x, grafData.y, grafData.z);
+  const normal = new THREE.Vector3(grafData.nx, grafData.ny, grafData.nz);
+  spawnDecalMesh(pos, normal, grafData.brush, grafData.size, placedDecals.length);
+  placedDecals.push({
+    pos: [pos.x, pos.y, pos.z],
+    normal: [normal.x, normal.y, normal.z],
+    type: grafData.brush,
+    size: grafData.size
+  });
+}
+
+let currentSaturation = 0;
+function onSaturationSync(val) {
+  currentSaturation = val;
+  const satText = document.getElementById('saturation-text');
+  const satFill = document.getElementById('saturation-bar-fill');
+  if (satText) satText.textContent = val.toFixed(1) + '%';
+  if (satFill) satFill.style.width = val + '%';
+  
+  if (val >= 100) {
+    triggerManifestoEvent();
+  }
+}
+
+function triggerManifestoEvent() {
+  // Simples evento visual para 100% de saturação
+  scene.fog.color.setHex(0xff0000);
+  scene.fog.density = 0.1;
+  document.body.style.filter = 'hue-rotate(90deg) contrast(1.5)';
+}
+
 function selectGraffitiBrush(type) {
   state.graffitiBrush = type;
   
@@ -4708,6 +4790,15 @@ function placeGraffitiDecal() {
     document.getElementById('hud-counter').textContent = Number(state.counterValue).toLocaleString('pt-BR');
     document.getElementById('counter-value').textContent = Number(state.counterValue).toLocaleString('pt-BR');
     saveIPBankScore();
+    incrementGlobalSaturation(0.2); // Colar rosto dá 0.2%
+  } else {
+    // Sprays
+    if (currentSaturation < 40) {
+      alert('SATURAÇÃO MUITO BAIXA. CONTINUE COLANDO ROSTOS PARA DESBLOQUEAR A TINTA (REQUER 40%).');
+      isSpraying = false;
+      return;
+    }
+    incrementGlobalSaturation(0.05); // Tinta dá 0.05%
   }
   
   spawnDecalMesh(pos, normal, brush, state.graffitiSize, placedDecals.length);
@@ -4719,6 +4810,7 @@ function placeGraffitiDecal() {
     size: state.graffitiSize
   });
   
+  broadcastGraffiti(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z, brush, state.graffitiSize);
   saveDecalsToLocalStorage();
 }
 
