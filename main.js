@@ -2576,7 +2576,17 @@ function initThree() {
   const initColor = config.worldMode === 'outdoor' ? config.fogColorOutdoor : config.fogColorIndoor;
   const initDensity = config.worldMode === 'outdoor' ? config.fogDensityOutdoor : config.fogDensityIndoor;
   scene.background = new THREE.Color(initColor);
-  scene.fog = new THREE.FogExp2(initColor, initDensity);
+  scene.fog = new THREE.Fog(initColor, 10, 100);
+  Object.defineProperty(scene.fog, 'density', {
+    get: function() { return this._density || 0.015; },
+    set: function(val) {
+      if (val <= 0.0001) val = 0.0001;
+      this._density = val;
+      this.far = Math.min(2.0 / val, 500);
+      this.near = this.far * 0.1;
+    }
+  });
+  scene.fog.density = initDensity;
 
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 600);
   camera.position.set(CHUNK_SIZE / 2, PLAYER_HEIGHT, CHUNK_SIZE / 2);
