@@ -3729,6 +3729,9 @@ function updateAudioMode() {
    START
    ═══════════════════════════════════════════ */
 async function startGame() {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(e => console.warn("Fullscreen request failed:", e));
+  }
   dom.landing.classList.add('hidden');
   dom.loading.classList.remove('hidden');
 

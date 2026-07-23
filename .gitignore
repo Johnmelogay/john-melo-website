@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Heavy 3D models — use procedural fallback instead
+public/assets/outside_world.glb
 dist-ssr
 *.local
 
