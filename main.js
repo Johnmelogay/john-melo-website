@@ -5205,21 +5205,33 @@ function initMobileControls() {
   let joystickStartPos = { x: 0, y: 0 };
   const joystickLimit = 35;
   
+  let joystickTouchId = null;
+  
   if (ring && handle) {
     ring.addEventListener('touchstart', e => {
+      e.preventDefault();
       joystickActive = true;
-      const touch = e.touches[0];
+      const touch = e.changedTouches[0];
+      joystickTouchId = touch.identifier;
       const rect = ring.getBoundingClientRect();
       joystickStartPos = {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2
       };
       e.stopPropagation();
-    }, { passive: true });
+    }, { passive: false });
     
     window.addEventListener('touchmove', e => {
-      if (!joystickActive) return;
-      const touch = e.touches[0];
+      if (!joystickActive || joystickTouchId === null) return;
+      
+      let touch = null;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === joystickTouchId) {
+          touch = e.changedTouches[i];
+          break;
+        }
+      }
+      if (!touch) return;
       
       let dx = touch.clientX - joystickStartPos.x;
       let dy = touch.clientY - joystickStartPos.y;
@@ -5238,9 +5250,22 @@ function initMobileControls() {
       state.moveRight = dx > 8;
     }, { passive: true });
     
-    const resetJoystick = () => {
+    const resetJoystick = (e) => {
       if (!joystickActive) return;
+      
+      if (e) {
+        let touchFound = false;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joystickTouchId) {
+            touchFound = true;
+            break;
+          }
+        }
+        if (!touchFound) return;
+      }
+      
       joystickActive = false;
+      joystickTouchId = null;
       handle.style.transform = 'translate(0px, 0px)';
       state.moveForward = false;
       state.moveBackward = false;
@@ -5252,33 +5277,55 @@ function initMobileControls() {
     window.addEventListener('touchcancel', resetJoystick);
   }
   
+  let touchStartLookId = null;
   let touchStartLookX = 0, touchStartLookY = 0;
   let touchStartEuler = new THREE.Euler(0, 0, 0, 'YXZ');
   
   window.addEventListener('touchstart', e => {
-    const touch = e.touches[0];
-    if (touch.clientX > window.innerWidth * 0.4) {
-      touchStartLookX = touch.clientX;
-      touchStartLookY = touch.clientY;
-      touchStartEuler.copy(camera.rotation);
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.clientX > window.innerWidth * 0.4 && touchStartLookId === null) {
+        touchStartLookId = touch.identifier;
+        touchStartLookX = touch.clientX;
+        touchStartLookY = touch.clientY;
+        touchStartEuler.copy(camera.rotation);
+      }
     }
   }, { passive: true });
   
   window.addEventListener('touchmove', e => {
-    if (touchStartLookX === 0) return;
-    const touch = e.touches[0];
+    if (touchStartLookId === null) return;
     
-    const dx = touch.clientX - touchStartLookX;
-    const dy = touch.clientY - touchStartLookY;
-    
-    const sensitivity = 0.0035;
-    camera.rotation.y = touchStartEuler.y - dx * sensitivity;
-    camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, touchStartEuler.x - dy * sensitivity));
-    camera.rotation.z = 0;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      if (touch.identifier === touchStartLookId) {
+        const dx = touch.clientX - touchStartLookX;
+        const dy = touch.clientY - touchStartLookY;
+        
+        const sensitivity = 0.0035;
+        camera.rotation.y = touchStartEuler.y - dx * sensitivity;
+        camera.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, touchStartEuler.x - dy * sensitivity));
+        camera.rotation.z = 0;
+      }
+    }
   }, { passive: true });
   
-  window.addEventListener('touchend', () => {
-    touchStartLookX = 0;
+  window.addEventListener('touchend', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchStartLookId) {
+        touchStartLookId = null;
+        touchStartLookX = 0;
+      }
+    }
+  });
+  
+  window.addEventListener('touchcancel', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchStartLookId) {
+        touchStartLookId = null;
+        touchStartLookX = 0;
+      }
+    }
   });
   
   document.getElementById('m-btn-jump')?.addEventListener('touchstart', e => {
