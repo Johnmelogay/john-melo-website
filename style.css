@@ -1409,6 +1409,7 @@ html, body {
   top: 0;
   right: 0;
   width: 380px;
+  height: 100vh;
   height: 100dvh;
   background: rgba(5, 5, 5, 0.95);
   border-left: 1px solid var(--gray-mid);

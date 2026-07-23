@@ -3744,7 +3744,9 @@ async function startGame() {
 
   const nameInput = document.getElementById('player-name-input');
   const pName = nameInput ? nameInput.value.trim() : "";
-  initMultiplayer(null, pName !== "" ? pName : "AGENTE");
+  const finalName = pName !== "" ? pName : "AGENTE";
+  window.localPlayerName = finalName;
+  initMultiplayer(null, finalName);
   listenToPlayers(onPlayersSync);
   listenToGraffiti(onGraffitiSync);
   listenToSaturation(onSaturationSync);
@@ -4620,9 +4622,20 @@ const remotePlayers = {};
 
 function onPlayersSync(playersData, myId) {
   if (!playersData) return;
+  
+  const listEl = document.getElementById('online-players-list');
+  const countEl = document.getElementById('online-count');
+  let html = `<li><span style="color:var(--yellow)">▶</span> ${(window.localPlayerName || 'AGENTE').toUpperCase()} (VOCÊ)</li>`;
+  let onlineCount = 1;
+
   for (const id in playersData) {
     if (id === myId) continue;
     const p = playersData[id];
+    
+    if (Date.now() - p.lastUpdate <= 10000) {
+      html += `<li>${p.name ? p.name.toUpperCase() : 'AGENTE'}</li>`;
+      onlineCount++;
+    }
     
     if (Date.now() - p.lastUpdate > 10000) {
       if (remotePlayers[id]) {
