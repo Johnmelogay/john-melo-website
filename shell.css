@@ -1,0 +1,237 @@
+:root {
+  --bg-dark: #050505;
+  --text-primary: #f0f0e8;
+  --text-secondary: #888;
+  --accent-red: #ff0000;
+  --player-bg: rgba(15, 15, 15, 0.85);
+  --navbar-bg: rgba(5, 5, 5, 0.8);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Global Navbar */
+.global-navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 70px;
+  background: var(--navbar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  z-index: 9999;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.nav-brand a {
+  font-weight: 900;
+  font-size: 1.5rem;
+  letter-spacing: -0.05em;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--text-primary);
+}
+
+/* Iframe Container */
+.iframe-container {
+  flex-grow: 1;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  padding-top: 70px; /* offset for global navbar */
+  transition: padding-bottom 0.3s ease;
+  box-sizing: border-box;
+}
+
+body.has-player .iframe-container {
+  padding-bottom: 90px;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Bottom Player Bar */
+.player-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 90px;
+  background: var(--player-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5vw;
+  z-index: 10000;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.player-bar:not(.hidden) {
+  transform: translateY(0);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 30%;
+  min-width: 200px;
+}
+
+.player-info img {
+  width: 56px; height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.player-text {
+  overflow: hidden;
+}
+
+.player-text h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-text p {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.player-controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  max-width: 600px;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 8px;
+}
+
+.control-btn, .play-pause-btn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.control-btn svg {
+  width: 20px; height: 20px;
+  fill: currentColor;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.control-btn:hover svg {
+  opacity: 1;
+}
+
+.play-pause-btn {
+  background: var(--text-primary);
+  color: var(--bg-dark);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.play-pause-btn:hover {
+  transform: scale(1.05);
+}
+
+.play-pause-btn svg {
+  width: 22px; height: 22px;
+  fill: currentColor;
+}
+
+.player-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.player-progress span {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-bar-bg {
+  flex-grow: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  background: var(--text-primary);
+  border-radius: 2px;
+  width: 0%;
+  pointer-events: none;
+}
+
+.player-spacer {
+  width: 30%;
+}
+
+@media (max-width: 768px) {
+  .player-info { width: auto; }
+  .player-spacer { display: none; }
+  .player-bar { padding: 0 20px; height: 80px; }
+  .player-controls-container { max-width: none; }
+  .nav-links { display: none; } /* On mobile, maybe hide or use hamburger */
+}

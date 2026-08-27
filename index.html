@@ -2,172 +2,72 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JOHN MELO — PORTFOLIO</title>
-  <meta name="description" content="O portfolio e trabalhos de John Melo. Figura Pública." />
   <link rel="icon" type="image/png" href="./assets/face.png" />
-  <link rel="stylesheet" href="./portfolio.css" />
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./shell.css" />
 </head>
 <body>
+  
+  <!-- GLOBAL NAVBAR -->
+  <nav class="global-navbar">
+    <div class="nav-brand">
+      <a href="#" onclick="navigate('home.html')">JOHN MELO</a>
+    </div>
+    <div class="nav-links">
+      <a href="#" onclick="navigate('home.html')">HOME</a>
+      <a href="#" onclick="navigate('about.html')">ABOUT ME</a>
+      <a href="#" onclick="navigate('audios.html')">AUDIOS</a>
+      <a href="#" onclick="navigate('experience.html')">EXPERIENCE</a>
+    </div>
+  </nav>
 
-  <!-- Background effects -->
-  <div class="noise-bg"></div>
-  <div class="vignette"></div>
+  <!-- IFRAME FOR CONTENT -->
+  <div class="iframe-container">
+    <iframe id="main-frame" src="./home.html"></iframe>
+  </div>
 
-  <main class="portfolio-container">
-    <div class="scroll-track" id="hero-scroll-track">
-      <div class="sticky-container">
-        <canvas id="hero-canvas"></canvas>
-        <div class="hero-overlay">
-          <div id="hero-typography">
-            <h1 class="hero-title">JOHN MELO</h1>
-            <p class="hero-subtitle">FIGURA PÚBLICA</p>
-          </div>
-          <div class="scroll-indicator">
-            <p class="scroll-desktop-text">DRAG SCROLLBAR TO EXPLORE</p>
-            <p class="scroll-mobile-text">SCROLL</p>
-            <div class="scroll-line"></div>
-          </div>
-        </div>
+  <!-- GLOBAL AUDIO PLAYER -->
+  <footer class="player-bar hidden" id="player-bar">
+    <div class="player-info">
+      <img id="player-artwork" src="./assets/face.png" alt="Artwork" />
+      <div class="player-text">
+        <h3 id="player-title">Track Title</h3>
+        <p id="player-artist">JOHN MELO</p>
       </div>
     </div>
-
-    <nav class="navigation-grid">
-      <a href="#" class="nav-card" style="--delay: 0.1s">
-        <div class="nav-card-bg"></div>
-        <div class="nav-card-content">
-          <span class="nav-tag">01</span>
-          <h2>ARTWORKS</h2>
-          <p>Pinturas, gravuras e manifestações físicas.</p>
-        </div>
-      </a>
-      
-      <a href="#" class="nav-card" style="--delay: 0.2s">
-        <div class="nav-card-bg"></div>
-        <div class="nav-card-content">
-          <span class="nav-tag">02</span>
-          <h2>VIDEOS</h2>
-          <p>Curtas-metragens e registros de performances.</p>
-        </div>
-      </a>
-
-      <a href="#" class="nav-card" style="--delay: 0.3s">
-        <div class="nav-card-bg"></div>
-        <div class="nav-card-content">
-          <span class="nav-tag">03</span>
-          <h2>PHOTOS</h2>
-          <p>Fotografia documental e registros de invasões.</p>
-        </div>
-      </a>
-
-      <a href="#" class="nav-card" style="--delay: 0.4s">
-        <div class="nav-card-bg"></div>
-        <div class="nav-card-content">
-          <span class="nav-tag">04</span>
-          <h2>AUDIOS</h2>
-          <p>Zines sonoros, músicas e paisagens atmosféricas.</p>
-        </div>
-      </a>
-
-      <a href="./experience.html" class="nav-card experience-card" style="--delay: 0.5s">
-        <div class="nav-card-bg"></div>
-        <div class="scanlines"></div>
-        <div class="nav-card-content">
-          <span class="nav-tag blink">SYS_ONLINE</span>
-          <h2>THE EXPERIENCE</h2>
-          <p>Mundo virtual interativo multiplayer. Seja exposto à obra completa de forma imersiva.</p>
-          <div class="enter-btn">INICIAR CONEXÃO_</div>
-        </div>
-      </a>
-    </nav>
     
-    <footer class="portfolio-footer">
-      <p>&copy; <script>document.write(new Date().getFullYear())</script> JOHN MELO. VOCÊ ESTÁ SENDO OBSERVADO.</p>
-    </footer>
-  </main>
-
-  <script>
-    // Canvas Scroll Scrubbing
-    const canvas = document.getElementById('hero-canvas');
-    const context = canvas.getContext('2d');
-    const scrollTrack = document.getElementById('hero-scroll-track');
+    <div class="player-controls-container">
+      <div class="player-controls">
+        <button id="btn-prev" class="control-btn">
+          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button id="btn-play-pause" class="play-pause-btn">
+          <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        <button id="btn-next" class="control-btn">
+          <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+      </div>
+      
+      <div class="player-progress">
+        <span id="time-current">0:00</span>
+        <div class="progress-bar-bg" id="progress-bg">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <span id="time-total">0:00</span>
+      </div>
+    </div>
     
-    // Video settings
-    const frameCount = 384;
-    const currentFrame = index => `./assets/hero-frames/frame_${index.toString().padStart(4, '0')}.jpg`;
-    
-    // Preload frames
-    const images = [];
-    const img = new Image();
-    img.src = currentFrame(1);
-    canvas.width = 1920;
-    canvas.height = 1080;
-    img.onload = () => {
-      context.drawImage(img, 0, 0);
-    }
-    images[0] = img;
+    <div class="player-spacer"></div>
+  </footer>
 
-    // Background preload
-    for (let i = 2; i <= frameCount; i++) {
-      const preloadImg = new Image();
-      preloadImg.src = currentFrame(i);
-      images.push(preloadImg);
-    }
-    
-    const typography = document.getElementById('hero-typography');
+  <!-- Hidden SoundCloud Widget -->
+  <iframe id="sc-widget" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/johnmelo_putoexperimental/sets/perpetualization-2&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"></iframe>
 
-    // Update on scroll
-    window.addEventListener('scroll', () => {  
-      const trackRect = scrollTrack.getBoundingClientRect();
-      
-      // Calculate scroll fraction (0 to 1) relative to the scroll track
-      // scrollTrack starts at 0. When we scroll down, trackRect.top goes negative.
-      // We want the video to finish playing exactly when the track is completely off-screen.
-      // So maxScroll is the entire height of the track.
-      
-      const maxScroll = trackRect.height;
-      let scrollFraction = -trackRect.top / maxScroll;
-      
-      // Clamp between 0 and 1
-      scrollFraction = Math.max(0, Math.min(1, scrollFraction));
-      
-      // Calculate which frame to show
-      const frameIndex = Math.min(
-        frameCount - 1,
-        Math.floor(scrollFraction * frameCount)
-      );
-      
-      requestAnimationFrame(() => {
-        if (images[frameIndex] && images[frameIndex].complete) {
-          context.drawImage(images[frameIndex], 0, 0);
-        }
-        
-        // Typography fade-in smoothly around frame 288
-        let textOpacity = 0;
-        if (frameIndex >= 240 && frameIndex <= 288) {
-          textOpacity = (frameIndex - 240) / (288 - 240);
-        } else if (frameIndex > 288) {
-          textOpacity = 1;
-        }
-        typography.style.opacity = textOpacity;
-      });
-    });
-
-    // Simple intersection observer for reveal animations (for cards below)
-    const cards = document.querySelectorAll('.nav-card');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    cards.forEach(card => observer.observe(card));
-  </script>
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+  <script type="module" src="./shell.js"></script>
 </body>
 </html>
