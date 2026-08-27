@@ -11,7 +11,8 @@ export default defineConfig({
         experience: resolve(__dirname, 'experience.html'),
         admin: resolve(__dirname, 'admin.html'),
         audios: resolve(__dirname, 'audios.html'),
-        about: resolve(__dirname, 'about.html')
+        about: resolve(__dirname, 'about.html'),
+        figuraPublica: resolve(__dirname, 'figura-publica.html')
       }
     }
   }
