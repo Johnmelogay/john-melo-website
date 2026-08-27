@@ -22,8 +22,25 @@ let currentIndex = -1;
 let isPlaying = false;
 let currentDuration = 0;
 
+// Mobile Menu Toggle
+const hamburgerBtn = document.getElementById('hamburger-btn');
+const navLinks = document.getElementById('nav-links');
+
+if (hamburgerBtn) {
+  hamburgerBtn.addEventListener('click', () => {
+    hamburgerBtn.classList.toggle('active');
+    navLinks.classList.toggle('mobile-open');
+  });
+}
+
 // Global Navigate Function
 window.navigate = function(url) {
+  // Close mobile menu if open
+  if (hamburgerBtn && hamburgerBtn.classList.contains('active')) {
+    hamburgerBtn.classList.remove('active');
+    navLinks.classList.remove('mobile-open');
+  }
+
   iframe.src = url;
   
   // If navigating to 3D experience, pause 2D audio to prevent clash with 3D cassette player

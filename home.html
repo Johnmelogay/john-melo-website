@@ -26,6 +26,10 @@
           <div id="hero-typography">
             <img src="./assets/logo.svg" alt="JOHN MELO" class="hero-logo" />
           </div>
+          <div class="scroll-indicator" id="scroll-indicator">
+            <div class="mouse"></div>
+            <p>SCROLL</p>
+          </div>
         </div>
       </div>
     </div>
@@ -113,6 +117,7 @@
     }
     
     const typography = document.getElementById('hero-typography');
+    const scrollIndicator = document.getElementById('scroll-indicator');
 
     // Update on scroll
     window.addEventListener('scroll', () => {  
@@ -148,6 +153,11 @@
           textOpacity = 1;
         }
         typography.style.opacity = textOpacity;
+
+        // Fade out scroll indicator
+        if (scrollIndicator) {
+          scrollIndicator.style.opacity = scrollFraction > 0.05 ? '0' : '0.8';
+        }
       });
     });
 
@@ -175,10 +185,6 @@
     </div>
   </div>
 
-  <!-- Hidden SoundCloud Widget for Audio playback -->
-  <iframe id="sc-widget" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/johnmelo_putoexperimental/sets/perpetualization-2&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"></iframe>
-  
-  <script src="https://w.soundcloud.com/player/api.js"></script>
   <script type="module" src="./portfolio.js"></script>
 </body>
 </html>
