@@ -86,8 +86,14 @@ async function loadFirebaseCategory(category) {
       
       let mediaHtml = '';
       if (category === 'videos') {
-        // Show thumbnail or first frame
-        mediaHtml = `<video class="work-media" src="${item.url}" preload="metadata" muted playsinline></video>`;
+        if (isYouTubeUrl(item.url)) {
+          // YouTube: use thumbnail image
+          const thumb = getYouTubeThumbnail(item.url);
+          mediaHtml = `<img class="work-media" src="${thumb}" alt="${item.title}" loading="lazy" />`;
+        } else {
+          // Direct video: autoplay muted loop
+          mediaHtml = `<video class="work-media" src="${item.url}" autoplay muted loop playsinline></video>`;
+        }
       } else {
         mediaHtml = `<img class="work-media" src="${item.url}" alt="${item.title}" loading="lazy" />`;
       }
@@ -96,6 +102,7 @@ async function loadFirebaseCategory(category) {
         ${mediaHtml}
         <div class="work-info">
           <h3>${item.title}</h3>
+          ${item.year ? `<p>${item.year}</p>` : ''}
           ${item.description ? `<p>${item.description}</p>` : ''}
         </div>
       `;
@@ -113,11 +120,31 @@ async function loadFirebaseCategory(category) {
 }
 
 // ═══════════════════════════════════════════
+// YOUTUBE HELPERS
+// ═══════════════════════════════════════════
+function getYouTubeId(url) {
+  if (!url) return null;
+  const regExp = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regExp);
+  return match ? match[1] : null;
+}
+
+function isYouTubeUrl(url) {
+  return getYouTubeId(url) !== null;
+}
+
+function getYouTubeThumbnail(url) {
+  const id = getYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+
+// ═══════════════════════════════════════════
 // FULLSCREEN LIGHTBOX
 // ═══════════════════════════════════════════
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightbox-img');
 const lightboxVideo = document.getElementById('lightbox-video');
+const lightboxYt = document.getElementById('lightbox-yt');
 const lightboxTitle = document.getElementById('lightbox-title');
 const lightboxDesc = document.getElementById('lightbox-desc');
 const lightboxClose = document.getElementById('lightbox-close');
@@ -128,27 +155,44 @@ let lightboxItems = [];
 let lightboxIndex = 0;
 let currentCategory = '';
 
+function hideAllMedia() {
+  lightboxImg.style.display = 'none';
+  lightboxVideo.style.display = 'none';
+  lightboxVideo.pause();
+  lightboxYt.style.display = 'none';
+  lightboxYt.src = '';
+}
+
 function openLightbox(index) {
   if (index < 0 || index >= lightboxItems.length) return;
   lightboxIndex = index;
   const item = lightboxItems[index];
 
-  // Show/hide img vs video
+  hideAllMedia();
+
   if (currentCategory === 'videos') {
-    lightboxImg.style.display = 'none';
-    lightboxVideo.style.display = 'block';
-    lightboxVideo.src = item.url;
-    lightboxVideo.play();
+    if (isYouTubeUrl(item.url)) {
+      // YouTube embed
+      const ytId = getYouTubeId(item.url);
+      lightboxYt.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+      lightboxYt.style.display = 'block';
+    } else {
+      // Direct video file
+      lightboxVideo.src = item.url;
+      lightboxVideo.style.display = 'block';
+      lightboxVideo.play();
+    }
   } else {
-    lightboxVideo.style.display = 'none';
-    lightboxVideo.pause();
-    lightboxImg.style.display = 'block';
     lightboxImg.src = item.url;
     lightboxImg.alt = item.title;
+    lightboxImg.style.display = 'block';
   }
 
   lightboxTitle.textContent = item.title || '';
-  lightboxDesc.textContent = item.description || '';
+  const descParts = [];
+  if (item.year) descParts.push(item.year);
+  if (item.description) descParts.push(item.description);
+  lightboxDesc.textContent = descParts.join(' — ');
 
   lightbox.classList.remove('hidden');
 
@@ -159,8 +203,7 @@ function openLightbox(index) {
 
 function closeLightbox() {
   lightbox.classList.add('hidden');
-  lightboxVideo.pause();
-  lightboxVideo.src = '';
+  hideAllMedia();
 }
 
 lightboxClose.addEventListener('click', closeLightbox);
@@ -181,3 +224,4 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') openLightbox(lightboxIndex - 1);
   if (e.key === 'ArrowRight') openLightbox(lightboxIndex + 1);
 });
+
