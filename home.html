@@ -101,79 +101,173 @@
   </main>
 
   <script>
-    // Canvas Scroll Scrubbing
+    // ═══════════════════════════════════════════
+    // HIGH-PERFORMANCE PROGRESSIVE CANVAS SCRUBBER
+    // ═══════════════════════════════════════════
     const canvas = document.getElementById('hero-canvas');
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext('2d', { alpha: false });
     const scrollTrack = document.getElementById('hero-scroll-track');
-    
-    // Video settings
-    const frameCount = 384;
-    const currentFrame = index => `./assets/hero-frames/frame_${index.toString().padStart(4, '0')}.jpg`;
-    
-    // Preload frames
-    const images = [];
-    const img = new Image();
-    img.src = currentFrame(1);
-    canvas.width = 1920;
-    canvas.height = 1080;
-    img.onload = () => {
-      context.drawImage(img, 0, 0);
-    }
-    images[0] = img;
-
-    // Background preload
-    for (let i = 2; i <= frameCount; i++) {
-      const preloadImg = new Image();
-      preloadImg.src = currentFrame(i);
-      images.push(preloadImg);
-    }
-    
     const typography = document.getElementById('hero-typography');
     const scrollIndicator = document.getElementById('scroll-indicator');
 
-    // Update on scroll
-    window.addEventListener('scroll', () => {  
+    const frameCount = 384;
+    const currentFrameUrl = index => `./assets/hero-frames/frame_${index.toString().padStart(4, '0')}.jpg`;
+
+    canvas.width = 1920;
+    canvas.height = 1080;
+
+    // Frame cache map
+    const frames = new Array(frameCount);
+    let lastRenderedIndex = 0;
+    let targetFrameIndex = 0;
+    let initialBufferReady = false;
+
+    // Load single frame asynchronously
+    function loadFrame(i, onLoaded) {
+      if (frames[i]) {
+        if (frames[i].complete && frames[i].naturalWidth > 0 && onLoaded) {
+          onLoaded(i);
+        }
+        return frames[i];
+      }
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = currentFrameUrl(i + 1); // 1-indexed filenames
+      img.onload = () => {
+        if (onLoaded) onLoaded(i);
+        if (i === targetFrameIndex || Math.abs(i - targetFrameIndex) <= 2) {
+          drawFrame(targetFrameIndex);
+        }
+      };
+      frames[i] = img;
+      return img;
+    }
+
+    // Smart draw frame with nearest fallback (ZERO freeze / ZERO black frames)
+    function drawFrame(index) {
+      targetFrameIndex = index;
+      const targetImg = frames[index];
+
+      if (targetImg && targetImg.complete && targetImg.naturalWidth > 0) {
+        context.drawImage(targetImg, 0, 0);
+        lastRenderedIndex = index;
+        return;
+      }
+
+      // Priority load requested frame
+      loadFrame(index);
+
+      // Find nearest loaded frame
+      let fallbackIndex = -1;
+      for (let offset = 1; offset < frameCount; offset++) {
+        const prev = index - offset;
+        if (prev >= 0 && frames[prev] && frames[prev].complete && frames[prev].naturalWidth > 0) {
+          fallbackIndex = prev;
+          break;
+        }
+        const next = index + offset;
+        if (next < frameCount && frames[next] && frames[next].complete && frames[next].naturalWidth > 0) {
+          fallbackIndex = next;
+          break;
+        }
+      }
+
+      if (fallbackIndex !== -1 && frames[fallbackIndex] && frames[fallbackIndex].complete) {
+        context.drawImage(frames[fallbackIndex], 0, 0);
+        lastRenderedIndex = fallbackIndex;
+      }
+    }
+
+    // Progressive Tiered Preloader (Fast-start without network choking)
+    function initProgressiveLoading() {
+      // 1. Frame 1 (Instant Paint)
+      loadFrame(0, () => {
+        drawFrame(0);
+
+        // 2. Preload Tier 1 (First 35 frames for instant intro play)
+        let tier1Loaded = 0;
+        const tier1Total = Math.min(35, frameCount);
+        for (let i = 1; i < tier1Total; i++) {
+          loadFrame(i, () => {
+            tier1Loaded++;
+            if (tier1Loaded >= 12 && !initialBufferReady) {
+              initialBufferReady = true;
+              startAutoplayIfReady();
+            }
+          });
+        }
+
+        // 3. Preload Keyframes (Every 4th frame across the sequence)
+        setTimeout(() => {
+          for (let i = tier1Total; i < frameCount; i += 4) {
+            loadFrame(i);
+          }
+
+          // 4. Background fill remaining in lightweight chunks
+          setTimeout(() => {
+            let cursor = 0;
+            function loadRemainingBatch() {
+              const batchSize = 6;
+              let count = 0;
+              while (cursor < frameCount && count < batchSize) {
+                if (!frames[cursor]) {
+                  loadFrame(cursor);
+                  count++;
+                }
+                cursor++;
+              }
+              if (cursor < frameCount) {
+                if (window.requestIdleCallback) {
+                  requestIdleCallback(loadRemainingBatch, { timeout: 150 });
+                } else {
+                  setTimeout(loadRemainingBatch, 40);
+                }
+              }
+            }
+            loadRemainingBatch();
+          }, 400);
+        }, 200);
+      });
+    }
+
+    // Scroll Handler
+    function onWindowScroll() {
       const trackRect = scrollTrack.getBoundingClientRect();
-      
-      // Calculate scroll fraction (0 to 1) relative to the scroll track
-      // scrollTrack starts at 0. When we scroll down, trackRect.top goes negative.
-      // We want the video to finish playing exactly when the track is completely off-screen.
-      // So maxScroll is the entire height of the track.
-      
       const maxScroll = trackRect.height;
       let scrollFraction = -trackRect.top / maxScroll;
-      
-      // Clamp between 0 and 1
       scrollFraction = Math.max(0, Math.min(1, scrollFraction));
-      
-      // Calculate which frame to show
-      const frameIndex = Math.min(
-        frameCount - 1,
-        Math.floor(scrollFraction * frameCount)
-      );
-      
+
+      const frameIndex = Math.min(frameCount - 1, Math.floor(scrollFraction * frameCount));
+
+      // Boost priority for surrounding frames (±10)
+      for (let i = Math.max(0, frameIndex - 4); i <= Math.min(frameCount - 1, frameIndex + 12); i++) {
+        loadFrame(i);
+      }
+
       requestAnimationFrame(() => {
-        if (images[frameIndex] && images[frameIndex].complete) {
-          context.drawImage(images[frameIndex], 0, 0);
-        }
-        
-        // Typography fade-in smoothly around frame 288
+        drawFrame(frameIndex);
+
+        // Typography fade-in around frame 288
         let textOpacity = 0;
         if (frameIndex >= 240 && frameIndex <= 288) {
           textOpacity = (frameIndex - 240) / (288 - 240);
         } else if (frameIndex > 288) {
           textOpacity = 1;
         }
-        typography.style.opacity = textOpacity;
+        if (typography) typography.style.opacity = textOpacity;
 
         // Fade out scroll indicator
         if (scrollIndicator) {
           scrollIndicator.style.opacity = scrollFraction > 0.05 ? '0' : '0.4';
         }
       });
-    });
+    }
 
-    // Autoplay scroll logic
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+
+    // ═══════════════════════════════════════════
+    // AUTOPLAY SCROLL LOGIC
+    // ═══════════════════════════════════════════
     let isAutoPlaying = true;
     let autoPlayTimer = null;
     let autoPlayReqId = null;
@@ -211,7 +305,21 @@
       }
     }
 
-    // Stop autoplay on ANY user interaction (all touch & pointer variants)
+    function startAutoplayIfReady() {
+      if (!isAutoPlaying || autoPlayReqId || autoPlayTimer) return;
+      autoPlayTimer = setTimeout(() => {
+        if (isAutoPlaying) {
+          autoPlayReqId = requestAnimationFrame(autoPlayLoop);
+        }
+      }, 500);
+    }
+
+    // Safety fallback: start after 1.5s even on slow networks
+    setTimeout(() => {
+      startAutoplayIfReady();
+    }, 1500);
+
+    // Stop autoplay on ANY interaction
     const interactionEvents = [
       'touchstart', 'touchmove', 'touchend', 'touchcancel',
       'pointerdown', 'pointermove', 'pointerup',
@@ -223,7 +331,7 @@
       document.addEventListener(evt, stopAutoPlay, { passive: true, capture: true });
     });
 
-    // Detect manual scroll divergence (e.g. fast swipe or iOS inertia)
+    // Detect manual scroll divergence
     window.addEventListener('scroll', () => {
       if (isAutoPlaying) {
         if (Math.abs(window.scrollY - lastProgrammaticScroll) > 12) {
@@ -232,14 +340,10 @@
       }
     }, { passive: true });
 
-    // Start loop after 1s delay
-    autoPlayTimer = setTimeout(() => {
-      if (isAutoPlaying) {
-        autoPlayReqId = requestAnimationFrame(autoPlayLoop);
-      }
-    }, 1000);
+    // Initialize loader
+    initProgressiveLoading();
 
-    // Simple intersection observer for reveal animations (for cards below)
+    // Intersection observer for bottom navigation cards
     const cards = document.querySelectorAll('.nav-card');
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
