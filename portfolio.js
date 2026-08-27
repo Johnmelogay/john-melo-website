@@ -114,7 +114,7 @@ async function loadFirebaseCategory(category) {
           mediaHtml = `<video class="work-media" src="${item.url}" autoplay muted loop playsinline></video>`;
         }
       } else {
-        mediaHtml = `<img class="work-media" src="${item.url}" alt="${item.title}" loading="lazy" />`;
+        mediaHtml = `<img class="work-media" src="${item.url}" alt="${item.title}" loading="lazy" decoding="async" />`;
       }
 
       card.innerHTML = `

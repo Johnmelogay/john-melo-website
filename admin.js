@@ -79,7 +79,79 @@ function updateFormUI() {
   }
 }
 
-// Form submission
+// ═══════════════════════════════════════════
+// SMART CLIENT-SIDE IMAGE COMPRESSION
+// ═══════════════════════════════════════════
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+async function compressImageFile(file, maxDimension = 2560, quality = 0.86) {
+  // If not an image (e.g. video), return untouched
+  if (!file.type.startsWith('image/')) {
+    return { blob: file, originalSize: file.size, compressedSize: file.size, isCompressed: false, ext: file.name.split('.').pop() };
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Proportional scale to max dimension (maintains razor sharp details up to 2.5K)
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to high-efficiency WebP
+        canvas.toBlob((blob) => {
+          if (!blob || blob.size >= file.size) {
+            // Keep original if somehow larger
+            resolve({ blob: file, originalSize: file.size, compressedSize: file.size, isCompressed: false, ext: file.name.split('.').pop() });
+          } else {
+            resolve({
+              blob: blob,
+              originalSize: file.size,
+              compressedSize: blob.size,
+              isCompressed: true,
+              ext: 'webp'
+            });
+          }
+        }, 'image/webp', quality);
+      };
+
+      img.onerror = () => resolve({ blob: file, originalSize: file.size, compressedSize: file.size, isCompressed: false, ext: file.name.split('.').pop() });
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve({ blob: file, originalSize: file.size, compressedSize: file.size, isCompressed: false, ext: file.name.split('.').pop() });
+    reader.readAsDataURL(file);
+  });
+}
+
+// ═══════════════════════════════════════════
+// FORM SUBMISSION
+// ═══════════════════════════════════════════
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   
@@ -119,26 +191,46 @@ form.addEventListener('submit', async (e) => {
     } else {
       // File upload mode
       const fileInput = document.getElementById('file');
-      const file = fileInput.files[0];
-      if (!file) {
+      const rawFile = fileInput.files[0];
+      if (!rawFile) {
         showStatus('Nenhum arquivo selecionado.', 'error');
         submitBtn.disabled = false;
         return;
       }
 
-      showStatus('Iniciando upload do arquivo...', '');
+      let uploadBlob = rawFile;
+      let fileExt = rawFile.name.split('.').pop().toLowerCase();
 
-      const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase();
-      const filePath = `portfolio_works/${category}/${Date.now()}_${safeName}`;
+      // Compress if it's an image
+      if (rawFile.type.startsWith('image/')) {
+        showStatus('Comprimindo imagem sem perda de qualidade...', '');
+        const compression = await compressImageFile(rawFile);
+        uploadBlob = compression.blob;
+        fileExt = compression.ext;
+
+        if (compression.isCompressed) {
+          const reduction = Math.round((1 - compression.compressedSize / compression.originalSize) * 100);
+          showStatus(`Otimizado: ${formatBytes(compression.originalSize)} ➔ ${formatBytes(compression.compressedSize)} (-${reduction}%). Enviando...`, '');
+        } else {
+          showStatus('Iniciando upload do arquivo...', '');
+        }
+      } else {
+        showStatus('Iniciando upload do arquivo...', '');
+      }
+
+      const baseName = rawFile.name.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const filePath = `portfolio_works/${category}/${Date.now()}_${baseName}.${fileExt}`;
       const fileRef = storageRef(storage, filePath);
 
-      const uploadTask = uploadBytesResumable(fileRef, file);
+      const uploadTask = uploadBytesResumable(fileRef, uploadBlob, {
+        contentType: uploadBlob.type || (fileExt === 'webp' ? 'image/webp' : undefined)
+      });
 
       await new Promise((resolve, reject) => {
         uploadTask.on('state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            showStatus(`Enviando arquivo: ${Math.round(progress)}%`, '');
+            showStatus(`Enviando: ${Math.round(progress)}% (${formatBytes(snapshot.bytesTransferred)} / ${formatBytes(snapshot.totalBytes)})`, '');
           },
           (error) => {
             console.error("Erro no upload:", error);
@@ -170,7 +262,7 @@ form.addEventListener('submit', async (e) => {
 
     await set(newWorkRef, entry);
 
-    showStatus('SUCESSO! A obra foi adicionada ao sistema.', 'success');
+    showStatus('SUCESSO! Obra adicionada com alta performance.', 'success');
     form.reset();
     updateFormUI();
     submitBtn.disabled = false;
