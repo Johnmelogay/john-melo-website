@@ -209,9 +209,7 @@ body {
   z-index: 100;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  opacity: 0.4;
+  opacity: 1;
   transition: opacity 0.3s ease;
   overflow-y: auto;
 }
@@ -224,10 +222,11 @@ body {
 .gallery-header {
   position: sticky;
   top: 0;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 50px;
+  padding: 20px 30px;
   background: linear-gradient(to bottom, rgba(5,5,5,1) 0%, rgba(5,5,5,0) 100%);
   z-index: 101;
 }
@@ -256,46 +255,64 @@ body {
 }
 
 .gallery-grid {
-  padding: 0 50px 100px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
+  padding: 0;
+  columns: 4;
+  column-gap: 2px;
 }
 
-/* Artwork/Photo Card */
+@media (max-width: 1200px) {
+  .gallery-grid { columns: 3; }
+}
+@media (max-width: 768px) {
+  .gallery-grid { columns: 2; }
+}
+
+/* Artwork/Photo Card - Pinterest Style */
 .work-card {
-  background: #111;
-  border: 1px solid #222;
-  border-radius: 8px;
+  break-inside: avoid;
+  margin-bottom: 2px;
   overflow: hidden;
-  transition: transform 0.2s;
+  position: relative;
+  cursor: pointer;
+  background: #000;
 }
 
-.work-card:hover {
-  transform: translateY(-5px);
-  border-color: #444;
+.work-card:hover .work-media {
+  opacity: 0.7;
+}
+
+.work-card:hover .work-info {
+  opacity: 1;
 }
 
 .work-media {
   width: 100%;
-  aspect-ratio: 4/5;
-  object-fit: cover;
   display: block;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
 }
 
 .work-info {
-  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .work-info h3 {
-  margin: 0 0 10px 0;
-  font-size: 1.2rem;
+  margin: 0 0 4px 0;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .work-info p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #888;
+  font-size: 0.75rem;
+  color: #aaa;
 }
 
 /* Audio Player Card */
