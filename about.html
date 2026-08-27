@@ -96,19 +96,37 @@
 
     .avatar-status-pill {
       position: absolute;
-      bottom: 6px;
-      right: 6px;
+      bottom: 2px;
+      right: -10px;
       background: #000;
-      border: 1px solid var(--card-border);
+      border: 1px solid rgba(0, 255, 102, 0.4);
       border-radius: 20px;
-      padding: 4px 10px;
-      font-size: 0.68rem;
+      padding: 6px 14px;
+      font-size: 0.72rem;
       font-family: monospace;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       color: #00ff66;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+      gap: 8px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.8), 0 0 15px rgba(0, 255, 102, 0.25);
+      transition: all 0.25s ease;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .avatar-status-pill:hover {
+      background: #00ff66;
+      color: #000;
+      box-shadow: 0 0 25px rgba(0, 255, 102, 0.6);
+      transform: scale(1.05);
+    }
+
+    .avatar-status-pill:hover .status-dot {
+      background: #000;
+      box-shadow: none;
     }
 
     .status-dot {
@@ -433,10 +451,10 @@
     <!-- HERO PROFILE -->
     <header class="hero-profile">
       <div class="avatar-wrapper">
-        <img src="assets/bust3djohnmelo.png" alt="John Melo" class="avatar-img" />
-        <div class="avatar-status-pill">
-          <span class="status-dot"></span> AVAILABLE
-        </div>
+        <img src="./assets/bust3djohnmelo.png" alt="John Melo — Busto 3D" class="avatar-img" />
+        <a href="https://wa.me/5511988531007?text=Olá%20John,%20vim%20pelo%20seu%20site!" target="_blank" rel="noopener noreferrer" class="avatar-status-pill" title="Conversar no WhatsApp">
+          <span class="status-dot"></span> MESSAGE ME NOW
+        </a>
       </div>
 
       <div class="hero-title-group">
@@ -617,7 +635,8 @@
         Aberto a encomendas artísticas, direção criativa, desenvolvimento de experiências imersivas e colaborações globais.
       </p>
       <div class="social-row">
-        <a href="mailto:contato@johnmelo.com" class="social-btn" id="email-btn">EMAIL</a>
+        <a href="https://wa.me/5511988531007?text=Olá%20John,%20vim%20pelo%20seu%20site!" target="_blank" rel="noopener noreferrer" class="social-btn" style="background: rgba(0, 255, 102, 0.12); border-color: rgba(0, 255, 102, 0.4); color: #00ff66;">&#9742; WHATSAPP (11 98853-1007)</a>
+        <a href="mailto:johnmelocontato@gmail.com" class="social-btn" id="email-btn">&#9993; EMAIL (johnmelocontato@gmail.com)</a>
         <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="social-btn">INSTAGRAM</a>
         <a href="https://soundcloud.com/johnmelo_putoexperimental" target="_blank" rel="noopener noreferrer" class="social-btn">SOUNDCLOUD</a>
         <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-btn">GITHUB</a>
