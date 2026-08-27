@@ -76,6 +76,27 @@ body, html {
   gap: 30px;
 }
 
+.section-header {
+  grid-column: 1 / -1;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin: 20px 0 0 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.cms-artwork {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-radius: 8px;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
 .loading-state {
   grid-column: 1 / -1;
   text-align: center;
