@@ -175,7 +175,24 @@
 
     // Autoplay scroll logic
     let isAutoPlaying = true;
-    const autoScrollSpeed = window.innerHeight * 0.005; // Relative to screen height for consistent timing (approx 4-5px on desktop)
+    let autoPlayTimer = null;
+    let autoPlayReqId = null;
+    let lastProgrammaticScroll = 0;
+    const autoScrollSpeed = Math.max(2, window.innerHeight * 0.005); // Approx 3-5px
+
+    function stopAutoPlay() {
+      if (!isAutoPlaying) return;
+      isAutoPlaying = false;
+      if (autoPlayReqId) {
+        cancelAnimationFrame(autoPlayReqId);
+        autoPlayReqId = null;
+      }
+      if (autoPlayTimer) {
+        clearTimeout(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+    }
+    window.stopAutoPlay = stopAutoPlay;
 
     function autoPlayLoop() {
       if (!isAutoPlaying) return;
@@ -186,24 +203,41 @@
       const frameIndex = Math.floor(scrollFraction * frameCount);
 
       if (frameIndex < 285) {
+        lastProgrammaticScroll = window.scrollY + autoScrollSpeed;
         window.scrollBy(0, autoScrollSpeed);
-        requestAnimationFrame(autoPlayLoop);
+        autoPlayReqId = requestAnimationFrame(autoPlayLoop);
       } else {
-        isAutoPlaying = false;
+        stopAutoPlay();
       }
     }
 
-    // Stop autoplay on user interaction
-    const stopAutoPlay = () => { isAutoPlaying = false; };
-    window.addEventListener('wheel', stopAutoPlay, { passive: true });
-    window.addEventListener('touchstart', stopAutoPlay, { passive: true });
-    window.addEventListener('mousedown', stopAutoPlay, { passive: true });
-    window.addEventListener('keydown', stopAutoPlay, { passive: true });
+    // Stop autoplay on ANY user interaction (all touch & pointer variants)
+    const interactionEvents = [
+      'touchstart', 'touchmove', 'touchend', 'touchcancel',
+      'pointerdown', 'pointermove', 'pointerup',
+      'wheel', 'mousedown', 'mousemove', 'keydown'
+    ];
 
-    // Start loop
-    setTimeout(() => {
-      requestAnimationFrame(autoPlayLoop);
-    }, 1000); // 1s delay before starting to let user orient themselves
+    interactionEvents.forEach(evt => {
+      window.addEventListener(evt, stopAutoPlay, { passive: true, capture: true });
+      document.addEventListener(evt, stopAutoPlay, { passive: true, capture: true });
+    });
+
+    // Detect manual scroll divergence (e.g. fast swipe or iOS inertia)
+    window.addEventListener('scroll', () => {
+      if (isAutoPlaying) {
+        if (Math.abs(window.scrollY - lastProgrammaticScroll) > 12) {
+          stopAutoPlay();
+        }
+      }
+    }, { passive: true });
+
+    // Start loop after 1s delay
+    autoPlayTimer = setTimeout(() => {
+      if (isAutoPlaying) {
+        autoPlayReqId = requestAnimationFrame(autoPlayLoop);
+      }
+    }, 1000);
 
     // Simple intersection observer for reveal animations (for cards below)
     const cards = document.querySelectorAll('.nav-card');
