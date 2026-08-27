@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>JOHN MELO — PORTFOLIO</title>
+  <meta name="description" content="O portfolio e trabalhos de John Melo. Figura Pública." />
+  <link rel="icon" type="image/png" href="./assets/face.png" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800;900&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="./assets/home-CurEVi_K.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-Dezn_h7o.js">
+  <link rel="modulepreload" crossorigin href="./assets/firebase-multiplayer-kLE0Tx7F.js">
+  <link rel="stylesheet" crossorigin href="./assets/portfolio-BIMKr69Y.css">
+</head>
+<body>
+
+  <!-- Background effects -->
+  <div class="noise-bg"></div>
+  <div class="vignette"></div>
+
+  <main class="portfolio-container">
+    <div class="scroll-track" id="hero-scroll-track">
+      <div class="sticky-container">
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-overlay">
+          <div id="hero-typography">
+            <img src="./assets/logo.svg" alt="JOHN MELO" class="hero-logo" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="navigation-grid">
+      <a href="#" class="nav-card" data-category="artworks" style="--delay: 0.1s">
+        <div class="nav-card-bg"></div>
+        <div class="nav-card-content">
+          <span class="nav-tag">01</span>
+          <h2>ARTWORKS</h2>
+          <p>Pinturas, gravuras e manifestações físicas.</p>
+        </div>
+      </a>
+      
+      <a href="#" class="nav-card" data-category="videos" style="--delay: 0.2s">
+        <div class="nav-card-bg"></div>
+        <div class="nav-card-content">
+          <span class="nav-tag">02</span>
+          <h2>VIDEOS</h2>
+          <p>Curtas-metragens e registros de performances.</p>
+        </div>
+      </a>
+
+      <a href="#" class="nav-card" data-category="photos" style="--delay: 0.3s">
+        <div class="nav-card-bg"></div>
+        <div class="nav-card-content">
+          <span class="nav-tag">03</span>
+          <h2>PHOTOS</h2>
+          <p>Fotografia documental e registros de invasões.</p>
+        </div>
+      </a>
+
+      <a href="./audios.html" class="nav-card" data-category="audios" style="--delay: 0.4s">
+        <div class="nav-card-bg"></div>
+        <div class="nav-card-content">
+          <span class="nav-tag">04</span>
+          <h2>AUDIOS</h2>
+          <p>Zines sonoros, músicas e paisagens atmosféricas.</p>
+        </div>
+      </a>
+
+      <a href="./experience.html" class="nav-card experience-card" style="--delay: 0.5s">
+        <div class="nav-card-bg"></div>
+        <div class="scanlines"></div>
+        <div class="nav-card-content">
+          <span class="nav-tag blink">SYS_ONLINE</span>
+          <h2>THE EXPERIENCE</h2>
+          <p>Mundo virtual interativo multiplayer. Seja exposto à obra completa de forma imersiva.</p>
+          <div class="enter-btn">INICIAR CONEXÃO_</div>
+        </div>
+      </a>
+    </nav>
+    
+    <footer class="portfolio-footer">
+      <p>&copy; <script>document.write(new Date().getFullYear())</script> JOHN MELO. VOCÊ ESTÁ SENDO OBSERVADO.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Canvas Scroll Scrubbing
+    const canvas = document.getElementById('hero-canvas');
+    const context = canvas.getContext('2d');
+    const scrollTrack = document.getElementById('hero-scroll-track');
+    
+    // Video settings
+    const frameCount = 384;
+    const currentFrame = index => `./assets/hero-frames/frame_${index.toString().padStart(4, '0')}.jpg`;
+    
+    // Preload frames
+    const images = [];
+    const img = new Image();
+    img.src = currentFrame(1);
+    canvas.width = 1920;
+    canvas.height = 1080;
+    img.onload = () => {
+      context.drawImage(img, 0, 0);
+    }
+    images[0] = img;
+
+    // Background preload
+    for (let i = 2; i <= frameCount; i++) {
+      const preloadImg = new Image();
+      preloadImg.src = currentFrame(i);
+      images.push(preloadImg);
+    }
+    
+    const typography = document.getElementById('hero-typography');
+
+    // Update on scroll
+    window.addEventListener('scroll', () => {  
+      const trackRect = scrollTrack.getBoundingClientRect();
+      
+      // Calculate scroll fraction (0 to 1) relative to the scroll track
+      // scrollTrack starts at 0. When we scroll down, trackRect.top goes negative.
+      // We want the video to finish playing exactly when the track is completely off-screen.
+      // So maxScroll is the entire height of the track.
+      
+      const maxScroll = trackRect.height;
+      let scrollFraction = -trackRect.top / maxScroll;
+      
+      // Clamp between 0 and 1
+      scrollFraction = Math.max(0, Math.min(1, scrollFraction));
+      
+      // Calculate which frame to show
+      const frameIndex = Math.min(
+        frameCount - 1,
+        Math.floor(scrollFraction * frameCount)
+      );
+      
+      requestAnimationFrame(() => {
+        if (images[frameIndex] && images[frameIndex].complete) {
+          context.drawImage(images[frameIndex], 0, 0);
+        }
+        
+        // Typography fade-in smoothly around frame 288
+        let textOpacity = 0;
+        if (frameIndex >= 240 && frameIndex <= 288) {
+          textOpacity = (frameIndex - 240) / (288 - 240);
+        } else if (frameIndex > 288) {
+          textOpacity = 1;
+        }
+        typography.style.opacity = textOpacity;
+      });
+    });
+
+    // Simple intersection observer for reveal animations (for cards below)
+    const cards = document.querySelectorAll('.nav-card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    cards.forEach(card => observer.observe(card));
+  </script>
+
+  <!-- Gallery Overlay Modal -->
+  <div id="gallery-modal" class="hidden">
+    <div class="gallery-header">
+      <h2 id="gallery-title">CATEGORY</h2>
+      <button id="gallery-close">&times;</button>
+    </div>
+    <div id="gallery-content" class="gallery-grid">
+      <!-- Dynamic content will be injected here -->
+    </div>
+  </div>
+
+  <!-- Hidden SoundCloud Widget for Audio playback -->
+  <iframe id="sc-widget" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/johnmelo_putoexperimental/sets/perpetualization-2&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"></iframe>
+  
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+</body>
+</html>
