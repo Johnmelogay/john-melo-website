@@ -217,6 +217,21 @@
     </div>
   </div>
 
+  <!-- Fullscreen Lightbox Viewer -->
+  <div id="lightbox" class="lightbox hidden">
+    <button id="lightbox-close" class="lightbox-close">&times;</button>
+    <button id="lightbox-prev" class="lightbox-nav lightbox-prev-btn">&#8249;</button>
+    <button id="lightbox-next" class="lightbox-nav lightbox-next-btn">&#8250;</button>
+    <div class="lightbox-media-container">
+      <img id="lightbox-img" class="lightbox-media" />
+      <video id="lightbox-video" class="lightbox-media" controls playsinline style="display:none;"></video>
+    </div>
+    <div class="lightbox-info">
+      <h2 id="lightbox-title"></h2>
+      <p id="lightbox-desc"></p>
+    </div>
+  </div>
+
   <script type="module" src="./portfolio.js"></script>
 </body>
 </html>
