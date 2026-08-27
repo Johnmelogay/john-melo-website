@@ -1,5 +1,5 @@
 // audios.js - Runs inside the iframe, communicates with shell.js in parent
-// Also fetches individual tracks uploaded via CMS from Firebase
+// Fetches CMS tracks from Firebase and merges with SoundCloud playlist
 
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref as dbRef, get } from "firebase/database";
@@ -11,95 +11,91 @@ const db = getDatabase(firebaseApp);
 const trackListContainer = document.getElementById('track-list');
 const bgBlur = document.getElementById('bg-blur');
 
-// Section for CMS-uploaded tracks
 let cmsTracksData = [];
 
-// Render tracks from the parent SoundCloud widget
+// Fetch artwork from SoundCloud oEmbed API
+async function fetchSCArtwork(scUrl) {
+  try {
+    const resp = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(scUrl)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      return data.thumbnail_url || './assets/face.png';
+    }
+  } catch (e) {}
+  return './assets/face.png';
+}
+
 window.renderTrackList = function() {
-  if (!window.parent || !window.parent.getTracksData) return;
+  const scTracks = (window.parent && window.parent.getTracksData) ? window.parent.getTracksData() : [];
   
-  const tracksData = window.parent.getTracksData();
-  
-  // Clear and rebuild
   trackListContainer.innerHTML = '';
 
-  // First: render CMS tracks (uploaded via SYS_UPLOAD)
-  if (cmsTracksData.length > 0) {
-    const cmsHeader = document.createElement('h2');
-    cmsHeader.className = 'section-header';
-    cmsHeader.textContent = 'UPLOADED TRACKS';
-    trackListContainer.appendChild(cmsHeader);
-
-    cmsTracksData.forEach((track, index) => {
-      const item = document.createElement('div');
-      item.className = 'audio-grid-item cms-track';
-      item.id = `cms-track-${index}`;
-
-      item.innerHTML = `
-        <div class="audio-grid-artwork cms-artwork">
-          <svg viewBox="0 0 24 24" fill="white" width="40" height="40"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-        </div>
-        <div class="audio-grid-info">
-          <h3>${track.title}</h3>
-          <p>${track.year || 'JOHN MELO'}</p>
-        </div>
-      `;
-
-      item.addEventListener('click', () => {
-        // Open the SoundCloud link in the parent's widget
-        if (window.parent && window.parent.loadSoundCloudUrl) {
-          window.parent.loadSoundCloudUrl(track.url);
-        } else {
-          // Fallback: open in new tab
-          window.open(track.url, '_blank');
-        }
-      });
-
-      trackListContainer.appendChild(item);
-    });
-  }
-
-  // Second: render SoundCloud playlist tracks
-  if (tracksData.length > 0) {
-    if (cmsTracksData.length > 0) {
-      const scHeader = document.createElement('h2');
-      scHeader.className = 'section-header';
-      scHeader.textContent = 'PERPETUALIZATION';
-      trackListContainer.appendChild(scHeader);
-    }
-
-    tracksData.forEach((track, index) => {
-      const artworkUrl = track.artwork_url ? track.artwork_url.replace('large', 't500x500') : './assets/face.png';
-      const artist = track.user ? track.user.username : 'JOHN MELO';
-
-      const item = document.createElement('div');
-      item.className = 'audio-grid-item';
-      item.id = `track-${index}`;
-      
-      item.innerHTML = `
-        <img src="${artworkUrl}" alt="Artwork" class="audio-grid-artwork" loading="lazy" />
-        <div class="audio-grid-info">
-          <h3>${track.title}</h3>
-          <p>${artist}</p>
-        </div>
-      `;
-
-      item.addEventListener('click', () => {
-        const currentIndex = window.parent.getCurrentIndex();
-        if (currentIndex === index) {
-          window.parent.togglePlay();
-        } else {
-          window.parent.playTrack(index);
-        }
-      });
-
-      trackListContainer.appendChild(item);
-    });
-  }
-
-  if (tracksData.length === 0 && cmsTracksData.length === 0) {
+  if (scTracks.length === 0 && cmsTracksData.length === 0) {
     trackListContainer.innerHTML = '<div class="loading-state">NENHUMA FAIXA ENCONTRADA.</div>';
+    return;
   }
+
+  // Render CMS tracks first (these are individual SoundCloud links uploaded via CMS)
+  cmsTracksData.forEach((track, index) => {
+    const item = document.createElement('div');
+    item.className = 'audio-grid-item cms-track';
+    item.id = `cms-track-${index}`;
+    item.dataset.scUrl = track.url;
+
+    // Placeholder artwork, will be replaced async
+    item.innerHTML = `
+      <img src="./assets/face.png" alt="Artwork" class="audio-grid-artwork" loading="lazy" data-cms-art="${index}" />
+      <div class="audio-grid-info">
+        <h3>${track.title}</h3>
+        <p>${track.year || 'JOHN MELO'}</p>
+      </div>
+    `;
+
+    // Fetch real artwork async
+    fetchSCArtwork(track.url).then(artUrl => {
+      const img = item.querySelector(`[data-cms-art="${index}"]`);
+      if (img) img.src = artUrl;
+    });
+
+    item.addEventListener('click', () => {
+      if (window.parent && window.parent.loadSoundCloudUrl) {
+        window.parent.loadSoundCloudUrl(track.url);
+      } else {
+        window.open(track.url, '_blank');
+      }
+    });
+
+    trackListContainer.appendChild(item);
+  });
+
+  // Render SoundCloud playlist tracks
+  scTracks.forEach((track, index) => {
+    const artworkUrl = track.artwork_url ? track.artwork_url.replace('large', 't500x500') : './assets/face.png';
+    const artist = track.user ? track.user.username : 'JOHN MELO';
+
+    const item = document.createElement('div');
+    item.className = 'audio-grid-item';
+    item.id = `track-${index}`;
+    
+    item.innerHTML = `
+      <img src="${artworkUrl}" alt="Artwork" class="audio-grid-artwork" loading="lazy" />
+      <div class="audio-grid-info">
+        <h3>${track.title}</h3>
+        <p>${artist}</p>
+      </div>
+    `;
+
+    item.addEventListener('click', () => {
+      const currentIndex = window.parent.getCurrentIndex();
+      if (currentIndex === index) {
+        window.parent.togglePlay();
+      } else {
+        window.parent.playTrack(index);
+      }
+    });
+
+    trackListContainer.appendChild(item);
+  });
 
   window.highlightActiveTrack();
 };
