@@ -45,20 +45,48 @@ body, html {
 
 .nav-links {
   display: flex;
-  gap: 30px;
+  align-items: center;
+  gap: 22px;
 }
 
 .nav-links a {
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  transition: color 0.2s;
+  letter-spacing: 0.06em;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-links a:hover {
   color: var(--text-primary);
+}
+
+/* Standout Highlight for ABOUT ME */
+.nav-links a.nav-highlight {
+  color: #fff;
+  background: rgba(255, 26, 26, 0.15);
+  border: 1px solid rgba(255, 26, 26, 0.45);
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: 0 0 16px rgba(255, 26, 26, 0.25);
+}
+
+.nav-links a.nav-highlight:hover {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  box-shadow: 0 0 24px rgba(255, 26, 26, 0.6);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.nav-links a.nav-exp {
+  color: #ff3b30;
+}
+
+.nav-links a.nav-exp:hover {
+  color: #ff6961;
 }
 
 /* Hamburger Icon */
@@ -259,7 +287,7 @@ iframe {
   width: 30%;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .player-info { width: auto; }
   .player-spacer { display: none; }
   .player-bar { padding: 0 20px; height: 80px; }
@@ -277,16 +305,20 @@ iframe {
     right: 0;
     height: calc(100vh - 70px);
     background: rgba(5, 5, 5, 0.98);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    gap: 40px;
+    gap: 20px;
+    padding: 40px 20px 80px;
+    overflow-y: auto;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
     z-index: 9998;
+    box-sizing: border-box;
   }
 
   .nav-links.mobile-open {
@@ -296,6 +328,13 @@ iframe {
   }
 
   .nav-links a {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    padding: 8px 16px;
+  }
+
+  .nav-links a.nav-highlight {
+    font-size: 1.35rem;
+    padding: 10px 28px;
+    margin: 6px 0;
   }
 }

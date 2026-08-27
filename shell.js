@@ -49,6 +49,26 @@ window.navigate = function(url) {
   }
 };
 
+window.navigateCategory = function(category) {
+  // Close mobile menu if open
+  if (hamburgerBtn && hamburgerBtn.classList.contains('active')) {
+    hamburgerBtn.classList.remove('active');
+    navLinks.classList.remove('mobile-open');
+  }
+
+  try {
+    const iframeUrl = iframe.contentWindow.location.href;
+    if (iframeUrl.includes('home.html')) {
+      if (iframe.contentWindow.openCategory) {
+        iframe.contentWindow.openCategory(category);
+        return;
+      }
+    }
+  } catch (e) {}
+
+  iframe.src = `./home.html?cat=${category}`;
+};
+
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
   const m = Math.floor(totalSeconds / 60);

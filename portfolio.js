@@ -37,26 +37,45 @@ closeBtn.addEventListener('click', () => {
   if (scWidget) scWidget.pause();
 });
 
+// Open Category Modal Function
+window.openCategory = async function(category) {
+  if (category === 'audios') {
+    window.location.href = './audios.html';
+    return;
+  }
+
+  title.textContent = category;
+  
+  // Reset state
+  content.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">Carregando...</p>';
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  await loadFirebaseCategory(category);
+};
+
+// Check query param or hash on initial load
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('cat');
+  if (cat) {
+    setTimeout(() => {
+      window.openCategory(cat);
+    }, 100);
+  }
+});
+
 cards.forEach(card => {
   card.addEventListener('click', async (e) => {
     const isExperience = card.classList.contains('experience-card');
     if (isExperience) return; // let the standard link handle it
 
+    const isAbout = card.getAttribute('data-category') === 'about';
+    if (isAbout) return; // let standard link handle it
+
     e.preventDefault();
     const category = card.getAttribute('data-category');
-    if (category === 'audios') {
-      window.location.href = './audios.html';
-      return;
-    }
-
-    title.textContent = category;
-    
-    // Reset state
-    content.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">Carregando...</p>';
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-
-    await loadFirebaseCategory(category);
+    window.openCategory(category);
   });
 });
 

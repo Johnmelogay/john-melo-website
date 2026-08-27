@@ -198,6 +198,23 @@ body {
   opacity: 1;
 }
 
+.about-card {
+  border-color: rgba(255, 26, 26, 0.25);
+}
+
+.about-card:hover {
+  border-color: var(--accent-red);
+  box-shadow: 0 0 25px rgba(255, 26, 26, 0.15);
+}
+
+.about-card h2 {
+  color: #fff;
+}
+
+.about-card:hover h2 {
+  color: var(--accent-red);
+}
+
 /* ═══════════════════════════════════════════
    GALLERY MODAL & SOUNDCLOUD UI
    ═══════════════════════════════════════════ */
