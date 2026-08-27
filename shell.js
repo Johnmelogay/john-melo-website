@@ -33,6 +33,18 @@ if (hamburgerBtn) {
   });
 }
 
+// Forward any parent interaction to cancel iframe autoplay
+const parentInteractionEvents = ['touchstart', 'touchmove', 'touchend', 'pointerdown', 'wheel', 'mousedown'];
+parentInteractionEvents.forEach(evt => {
+  window.addEventListener(evt, () => {
+    try {
+      if (iframe.contentWindow && iframe.contentWindow.stopAutoPlay) {
+        iframe.contentWindow.stopAutoPlay();
+      }
+    } catch (e) {}
+  }, { passive: true });
+});
+
 // Global Navigate Function
 window.navigate = function(url) {
   // Close mobile menu if open
