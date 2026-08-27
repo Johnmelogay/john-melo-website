@@ -161,6 +161,38 @@
       });
     });
 
+    // Autoplay scroll logic
+    let isAutoPlaying = true;
+    const autoScrollSpeed = window.innerHeight * 0.005; // Relative to screen height for consistent timing (approx 4-5px on desktop)
+
+    function autoPlayLoop() {
+      if (!isAutoPlaying) return;
+
+      const trackRect = scrollTrack.getBoundingClientRect();
+      const maxScroll = trackRect.height;
+      let scrollFraction = -trackRect.top / maxScroll;
+      const frameIndex = Math.floor(scrollFraction * frameCount);
+
+      if (frameIndex < 285) {
+        window.scrollBy(0, autoScrollSpeed);
+        requestAnimationFrame(autoPlayLoop);
+      } else {
+        isAutoPlaying = false;
+      }
+    }
+
+    // Stop autoplay on user interaction
+    const stopAutoPlay = () => { isAutoPlaying = false; };
+    window.addEventListener('wheel', stopAutoPlay, { passive: true });
+    window.addEventListener('touchstart', stopAutoPlay, { passive: true });
+    window.addEventListener('mousedown', stopAutoPlay, { passive: true });
+    window.addEventListener('keydown', stopAutoPlay, { passive: true });
+
+    // Start loop
+    setTimeout(() => {
+      requestAnimationFrame(autoPlayLoop);
+    }, 1000); // 1s delay before starting to let user orient themselves
+
     // Simple intersection observer for reveal animations (for cards below)
     const cards = document.querySelectorAll('.nav-card');
     const observer = new IntersectionObserver((entries) => {
