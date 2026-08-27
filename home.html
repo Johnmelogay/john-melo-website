@@ -11,10 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-  <script type="module" crossorigin src="./assets/home-335x-pCu.js"></script>
+  <script type="module" crossorigin src="./assets/home-CFLm2Cf8.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-Dezn_h7o.js">
   <link rel="modulepreload" crossorigin href="./assets/firebase-multiplayer-kLE0Tx7F.js">
-  <link rel="stylesheet" crossorigin href="./assets/portfolio-BMfHx8N0.css">
+  <link rel="stylesheet" crossorigin href="./assets/portfolio-tmqn9zXj.css">
 </head>
 <body>
 
@@ -217,6 +217,21 @@
     </div>
     <div id="gallery-content" class="gallery-grid">
       <!-- Dynamic content will be injected here -->
+    </div>
+  </div>
+
+  <!-- Fullscreen Lightbox Viewer -->
+  <div id="lightbox" class="lightbox hidden">
+    <button id="lightbox-close" class="lightbox-close">&times;</button>
+    <button id="lightbox-prev" class="lightbox-nav lightbox-prev-btn">&#8249;</button>
+    <button id="lightbox-next" class="lightbox-nav lightbox-next-btn">&#8250;</button>
+    <div class="lightbox-media-container">
+      <img id="lightbox-img" class="lightbox-media" />
+      <video id="lightbox-video" class="lightbox-media" controls playsinline style="display:none;"></video>
+    </div>
+    <div class="lightbox-info">
+      <h2 id="lightbox-title"></h2>
+      <p id="lightbox-desc"></p>
     </div>
   </div>
 
