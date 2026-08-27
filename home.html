@@ -15,6 +15,15 @@
 </head>
 <body>
 
+  <!-- Minimal Logo Preloader -->
+  <div id="preloader" class="preloader">
+    <img src="./assets/logo.svg" alt="JOHN MELO" class="preloader-logo" />
+    <div class="preloader-bar-bg">
+      <div class="preloader-bar-fill" id="preloader-fill"></div>
+    </div>
+    <span id="preloader-percent" class="preloader-percent">0%</span>
+  </div>
+
   <!-- Background effects -->
   <div class="noise-bg"></div>
   <div class="vignette"></div>
@@ -175,11 +184,35 @@
       }
     }
 
+    const preloader = document.getElementById('preloader');
+    const preloaderFill = document.getElementById('preloader-fill');
+    const preloaderPercent = document.getElementById('preloader-percent');
+
+    function updatePreloader(pct) {
+      const clamped = Math.min(100, Math.max(0, Math.round(pct)));
+      if (preloaderFill) preloaderFill.style.width = `${clamped}%`;
+      if (preloaderPercent) preloaderPercent.textContent = `${clamped}%`;
+    }
+
+    let isPreloaderDismissed = false;
+    function dismissPreloader() {
+      if (isPreloaderDismissed) return;
+      isPreloaderDismissed = true;
+      updatePreloader(100);
+      setTimeout(() => {
+        if (preloader) preloader.classList.add('hidden');
+        startAutoplayIfReady();
+      }, 350);
+    }
+
     // Progressive Tiered Preloader (Fast-start without network choking)
     function initProgressiveLoading() {
+      updatePreloader(10);
+
       // 1. Frame 1 (Instant Paint)
       loadFrame(0, () => {
         drawFrame(0);
+        updatePreloader(25);
 
         // 2. Preload Tier 1 (First 35 frames for instant intro play)
         let tier1Loaded = 0;
@@ -187,9 +220,12 @@
         for (let i = 1; i < tier1Total; i++) {
           loadFrame(i, () => {
             tier1Loaded++;
-            if (tier1Loaded >= 12 && !initialBufferReady) {
+            const pct = 25 + Math.round((tier1Loaded / tier1Total) * 75);
+            updatePreloader(pct);
+
+            if (tier1Loaded >= 18 && !initialBufferReady) {
               initialBufferReady = true;
-              startAutoplayIfReady();
+              dismissPreloader();
             }
           });
         }
@@ -225,6 +261,11 @@
           }, 400);
         }, 200);
       });
+
+      // Safety timeout: Never keep user waiting more than 2s even on slow 3G
+      setTimeout(() => {
+        dismissPreloader();
+      }, 2000);
     }
 
     // Scroll Handler
